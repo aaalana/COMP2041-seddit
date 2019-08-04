@@ -1,5 +1,6 @@
 3/08/19     17:40   23:15   Subset 0 login and registration completed
 
-4/08/19     19:00   11:15   Subset 0 feed completed
+4/08/19     19:00   11:30   Subset 0 feed completed
                             registration bug needs to be fixed
+                            basic CSS added
 
