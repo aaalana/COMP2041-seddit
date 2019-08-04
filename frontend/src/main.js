@@ -12,6 +12,9 @@
 function initApp(apiUrl) {
      // your app initialisation goes here
     
+    // MAKING THE BASIC WEBPAGE SKELETON 
+    
+    // MAKING THE HEADER //
     // CREATING ELEMENT FOR THE HEADER
     const header = document.createElement('header');
     header.className = 'banner';
@@ -70,6 +73,87 @@ function initApp(apiUrl) {
     // APPENDING HEADER TO DOCUMENT
     document.getElementById('root').appendChild(header);
     
+    // MAKING THE FEED //
+    // CREATING THE ELEMENTS OF FEED
+    const main = document.createElement('main');
+    main.role = 'main';
+    
+    const feedUl = document.createElement('ul');
+    feedUl.id = 'feed';
+    const feedAttribute = document.createAttribute('data-id-feed');
+    feedUl.setAttributeNode(feedAttribute); 
+    
+    const feedHeader = document.createElement('div');
+    feedHeader.className = 'feed-header';
+   
+    const popularPosts = document.createElement('h3');
+    popularPosts.className = 'feed-title alt-text';
+    popularPosts.textContent = 'Popular posts';
+    
+    const postBtn = document.createElement('button');
+    postBtn.className = 'button button-secondary';
+    postBtn.textContent = 'Post';
+    
+    const feedLi = document.createElement('li');
+    feedLi.className = 'post';
+    const postAttribute = document.createAttribute('data-id-post');
+    feedLi.setAttributeNode(postAttribute); 
+    
+    const vote = document.createElement('div');
+    vote.className = 'vote';
+    const upvoteAttribute = document.createAttribute('data-id-upvotes');
+    vote.setAttributeNode(upvoteAttribute); 
+    
+    const content = document.createElement('div');
+    content.className = 'content';
+    
+    const feedTitle = document.createElement('h4');
+    const titleAttribute = document.createAttribute('data-id-title');
+    feedTitle.setAttributeNode(titleAttribute); 
+    feedTitle.className = 'post-title alt-text';
+    feedTitle.textContent = `Avenger’s Endgame Officially Passes Avatar To
+                             Become The Highest Grossing Movie Of All Time`;
+                     
+    const feedPara = document.createElement('p');
+    feedPara.className = 'post-author'; 
+    const authorAttribute = document.createAttribute('data-id-author');
+    feedPara.setAttributeNode(authorAttribute);              
+    feedPara.textContent = 'Posted by @some_dude69';
+    
+    // other...
+    // images not added
+    const feedDate = document.createElement('p');
+    feedDate.textContent = '4/08/2019';
+    
+    const feedDescript = document.createElement('p');
+    feedDescript.textContent = 'description: text 7';
+    
+    const feedComments = document.createElement('div');
+    feedComments.textContent = '0 comments';
+    
+    const feedSubseddit = document.createElement('p');
+    feedComments.textContent = '/s/meme';
+    
+    // APPENDING ELEMENTS TO HEADER
+    feedHeader.appendChild(popularPosts);
+    feedHeader.appendChild(postBtn);
+    feedUl.appendChild(feedHeader);
+    feedLi.appendChild(vote);
+    content.appendChild(feedTitle);
+    content.appendChild(feedPara);
+    
+    content.appendChild(feedDate);
+    content.appendChild(feedDescript);
+    content.appendChild(feedComments);
+    content.appendChild(feedSubseddit);
+    
+    feedLi.appendChild(content);
+    feedUl.appendChild(feedLi);
+    main.appendChild(feedUl);
+   
+    // APPENDING MAIN TO DOCUMENT
+    document.getElementById('root').appendChild(main);
+    
     // SUBSET 0 //
     // LOGIN
     
@@ -122,6 +206,7 @@ function initApp(apiUrl) {
     // buttons functionality for login
     headerButtonL.onclick = () => {
         document.getElementById('login').style.display = 'block';
+        document.getElementById('sign-up').style.display = 'none';
     }
  
     loginSubmit.onclick = () => {
@@ -155,6 +240,7 @@ function initApp(apiUrl) {
     // buttons functionality for sign up
     headerButtonS.onclick = () => {
         document.getElementById('sign-up').style.display = 'block';
+        document.getElementById('login').style.display = 'none';
     }
    
     signSubmit.onclick = () => {
@@ -163,15 +249,7 @@ function initApp(apiUrl) {
         
         let username = document.getElementById('sign-username').value;
         let password = document.getElementById('sign-password').value;
-        /*
-        // parses the json file into a JS object
-        // only works via node and will not work in the browser
-        
-        const users = require('../data/users.json');
-        const data = JSON.parse(data)
-        console.log(data);
-        */
-        
+      
         let user = '';
         let url = "../data/users.json";
         const request = new XMLHttpRequest();
@@ -205,6 +283,72 @@ function initApp(apiUrl) {
     
     signClose.onclick = () => {
         document.getElementById('sign-up').style.display = 'none';
+    }
+    
+    // FEED INTERFACE
+    // getting data from feed.json
+    let url = "../data/feed.json";
+        const request2 = new XMLHttpRequest();
+        request2.open('GET', url);
+        request2.responseType = 'json';
+        request2.send();
+        request2.onload = function() {
+            // sorting posts from most recent to least
+            let postData = request2.response.posts;
+            let sortedPosts = postData.sort(function(a, b){
+                return b.meta.published-a.meta.published
+            });
+            
+            console.log(sortedPosts);
+            // adding the post to the feed
+            for(let post of sortedPosts) {
+                let feedPost = feedLi.cloneNode(true);
+                console.log(feedPost);
+                let title = feedPost.childNodes[1].childNodes[0];
+                title.textContent = post.title;
+                let author = feedPost.childNodes[1].childNodes[1];
+                //console.log(author);
+                
+                author.textContent = "Posted by " + post.meta.author;
+                let upvotes = feedPost.firstChild;
+                upvotes.textContent = post.meta.upvotes.length;
+                let date = feedPost.childNodes[1].childNodes[2];
+                date.textContent = timeConverter(post.meta.published);
+                let description = feedPost.childNodes[1].childNodes[3];
+                description.textContent = post.text;
+                let comments = feedPost.childNodes[1].childNodes[4];
+                comments.textContent = post.comments.length + ' comments';
+                let subseddit = feedPost.childNodes[1].childNodes[5];
+                subseddit.textContent = post.meta.subseddit;
+                
+                // add in the image only if it exists 
+                if (post.image !== null) {
+                    let image = new Image();
+                    image.src = 'data:image/png;base64,' + post.image;
+                    feedPost.appendChild(image);
+                    image.className = 'post-image';
+                }
+                
+                feedUl.appendChild(feedPost);
+                main.appendChild(feedUl);
+                
+                document.getElementById('root').appendChild(main);
+                
+            }
+            feedLi.remove();
+        }
+    
+    // converts UNIX timestamps to date timestamps
+    function timeConverter(UNIX_timestamp){
+        let date = new Date(UNIX_timestamp * 1000);
+        let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        let year = date.getFullYear();
+        let month = months[date.getMonth()];
+        let day = date.getDate();
+        let hour = '0' + date.getHours();
+        let min = '0' + date.getMinutes();
+        let time = 'at '+ hour.substr(-2) + ':' + min.substr(-2) + ', ' + day + ' ' + month + ' ' + year;
+        return time;
     }
 }
 
