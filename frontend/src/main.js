@@ -185,7 +185,10 @@ function initApp(apiUrl) {
     loginPasswordField.placeholder = 'Enter Password';
     loginPasswordField.type = 'text';
     loginPasswordField.required = true;
-    loginPassword.id = 'login-password';
+    loginPasswordField.id = 'login-password';
+    
+    const inputError = document.createElement('p');
+    inputError.className = 'input-error';
     
     const loginSubmit = document.createElement('button');
     loginSubmit.type = 'button';
@@ -203,6 +206,7 @@ function initApp(apiUrl) {
     loginPassword.appendChild(loginPasswordField);
     loginForm.appendChild(loginUser);
     loginForm.appendChild(loginPassword);
+    loginForm.appendChild(inputError);
     loginForm.appendChild(loginSubmit);
     loginForm.appendChild(loginClose);
     loginDiv.appendChild(loginForm);
@@ -225,54 +229,71 @@ function initApp(apiUrl) {
     let username = document.getElementById('login-username').value;
     let password = document.getElementById('login-password').value;
        
-    let payload = {
-      "username": `${username}`,
-      "password": `${password}`
-    }
+    //let userUrl = `${apiUrl}/auth/login`;
+    //const request = new XMLHttpRequest();
+    //request.open('POST', userUrl);
+    //request.setRequestHeader('Content-Type', 'application/json');
+    //request.responseType = 'json';
+    //request.send(JSON.stringify(payload));
+    //request.onload = function() {
+    //    console(request.response);
+    //}
     /*
-    let options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-	        //'Authorization': 'Token '+ userToken
+     request.onreadystatechange = function() { 
+            if (this.readyState == 4 && this.status == 200) {
+                let userData = JSON.parse(this.responseText);
+                console.log(userData);
+              
+            }
         }
-        body: JSON.stringify(payload);
-    }
-  
-    fetch(`${apiUrl}/auth/login`, options)
-        .then(response => response.text())
-        .then(json => {
-            console.log(json);  
-        });*/
-        
-    let userUrl = `${apiUrl}/auth/login`;
-    const request = new XMLHttpRequest();
-    request.open('POST', userUrl, true);
-    request.setRequestHeader('Content-Type', 'application/json');
-    request.responseType = 'json';
-    request.send(JSON.stringify(payload));
-    request.onload = function() {
-        console(request.response);
-    }
- 
+        request.send(JSON.stringify(payload));
+    */
     // log the user in
+    
     loginSubmit.onclick = () => {
+        inputError.textContent = '';
+        
         let username = document.getElementById('login-username').value;
         let password = document.getElementById('login-password').value;
-       
-        // extract data from the user database for login validation
-        let userUrl = "../../backend/db/users.csv";
-        const request = new XMLHttpRequest();
-        request.open('GET', userUrl);
-        request.responseType = 'json';
-        request.send();
-        request.onload = function() {
-        //alert("Login has failed! :(");
-            let userExists = request.response.find(function(user) { 
-                return user.username == username 
+        //console.log(username);
+        //console.log(password);
+        let payload = {
+            "username": `${username}`,
+            "password": `${password}`
+         }
+        
+         let options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+	            //'Authorization': 'Token '+ userToken
+            },
+            body: JSON.stringify(payload)
+        }
+     
+        fetch(`${apiUrl}/auth/login`, options)
+            .then(response => response.json())
+            .then(json => {
+                //console.log(json);
+                if (!username || !password) {
+                    inputError.textContent = 'Missing Username/Password';
+                } else if (json.message == 'Invalid Username/Password') {
+                    inputError.textContent = json.message;
+                } else {
+                    //console.log(json);
+                    let token = json.token;
+                    document.getElementById('login-form').submit();
+                }
+               // console.log(json.token);  
+               // console.log(t.status);
             });
-        }    
-        document.getElementById('login-form').submit();
+      
+        //alert("Login has failed! :(");
+         //   let userExists = request.response.find(function(user) { 
+         //       return user.username == username 
+         //   });
+        //}    
+        //document.getElementById('login-form').submit();
     }
     
     // close the login form when the close button is clicked
@@ -362,14 +383,19 @@ function initApp(apiUrl) {
    
     // FEED INTERFACE
     // getting data from feed.json
+    fetch(`${apiUrl}/post/public`,)
+        .then(response => response.json())
+        .then(json => {
+    
+    /*
     let url = "../data/feed.json";
         const request2 = new XMLHttpRequest();
         request2.open('GET', url);
         request2.responseType = 'json';
         request2.send();
-        request2.onload = function() {
+        request2.onload = function() {*/
             // sorting posts from most recent to least
-            let postData = request2.response.posts;
+            let postData = json.posts;
             let sortedPosts = postData.sort(function(a, b){
                 return b.meta.published-a.meta.published
             });
@@ -420,7 +446,7 @@ function initApp(apiUrl) {
             }
             // remove the fake template post
             feedLi.remove();
-        }
+        })
    
     // converts UNIX timestamps to date timestamps
     function timeConverter(UNIX_timestamp){

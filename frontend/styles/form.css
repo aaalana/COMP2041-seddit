@@ -1,3 +1,7 @@
+.input-error {
+  color: red;
+}
+
 .form-popup {
   display: none;
   position: absolute;
