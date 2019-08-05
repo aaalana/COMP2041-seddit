@@ -225,38 +225,14 @@ function initApp(apiUrl) {
         document.getElementById('login').style.display = 'block';
         document.getElementById('sign-up').style.display = 'none';
     }
- 
-    let username = document.getElementById('login-username').value;
-    let password = document.getElementById('login-password').value;
-       
-    //let userUrl = `${apiUrl}/auth/login`;
-    //const request = new XMLHttpRequest();
-    //request.open('POST', userUrl);
-    //request.setRequestHeader('Content-Type', 'application/json');
-    //request.responseType = 'json';
-    //request.send(JSON.stringify(payload));
-    //request.onload = function() {
-    //    console(request.response);
-    //}
-    /*
-     request.onreadystatechange = function() { 
-            if (this.readyState == 4 && this.status == 200) {
-                let userData = JSON.parse(this.responseText);
-                console.log(userData);
-              
-            }
-        }
-        request.send(JSON.stringify(payload));
-    */
+  
     // log the user in
-    
     loginSubmit.onclick = () => {
         inputError.textContent = '';
         
         let username = document.getElementById('login-username').value;
         let password = document.getElementById('login-password').value;
-        //console.log(username);
-        //console.log(password);
+     
         let payload = {
             "username": `${username}`,
             "password": `${password}`
@@ -274,26 +250,15 @@ function initApp(apiUrl) {
         fetch(`${apiUrl}/auth/login`, options)
             .then(response => response.json())
             .then(json => {
-                //console.log(json);
                 if (!username || !password) {
                     inputError.textContent = 'Missing Username/Password';
                 } else if (json.message == 'Invalid Username/Password') {
                     inputError.textContent = json.message;
                 } else {
-                    //console.log(json);
-                    let token = json.token;
+                    localStorage.setItem('token', `${json.token}`);
                     document.getElementById('login-form').submit();
                 }
-               // console.log(json.token);  
-               // console.log(t.status);
             });
-      
-        //alert("Login has failed! :(");
-         //   let userExists = request.response.find(function(user) { 
-         //       return user.username == username 
-         //   });
-        //}    
-        //document.getElementById('login-form').submit();
     }
     
     // close the login form when the close button is clicked
@@ -380,73 +345,84 @@ function initApp(apiUrl) {
     signClose.onclick = () => {
         document.getElementById('sign-up').style.display = 'none';
     }
-   
+    
     // FEED INTERFACE
     // getting data from feed.json
-    fetch(`${apiUrl}/post/public`,)
-        .then(response => response.json())
-        .then(json => {
     
-    /*
-    let url = "../data/feed.json";
-        const request2 = new XMLHttpRequest();
-        request2.open('GET', url);
-        request2.responseType = 'json';
-        request2.send();
-        request2.onload = function() {*/
-            // sorting posts from most recent to least
-            let postData = json.posts;
-            let sortedPosts = postData.sort(function(a, b){
-                return b.meta.published-a.meta.published
-            });
-            
-            // adding the post to the feed
-            for(let post of sortedPosts) {
-                // clone the template post element and modify details for 
-                // each post
-                let feedPost = feedLi.cloneNode(true);
-                
-                // use console.log to check which childNode should be 
-                // picked to get a specific element of the post
-                // console.log(feedPost);
-                let title = feedPost.childNodes[1].childNodes[0];
-                title.textContent = post.title;
-                let author = feedPost.childNodes[1].childNodes[1];
-                author.textContent = "Posted by " + post.meta.author;
-                let upvotes = feedPost.firstChild;
-                upvotes.textContent = post.meta.upvotes.length;
-                let date = feedPost.childNodes[1].childNodes[2];
-                date.textContent = timeConverter(post.meta.published);
-                date.className = 'post-date';
-                let description = feedPost.childNodes[1].childNodes[3];
-                description.textContent = post.text;
-                let comments = feedPost.childNodes[1].childNodes[4];
-                comments.textContent = post.comments.length + ' comments';
-                let subseddit = feedPost.childNodes[1].childNodes[5];
-                subseddit.textContent = post.meta.subseddit;
-                
-                // add in the image only if it exists 
-                if (post.image !== null) {
-                    let image = new Image();
-                    image.src = 'data:image/png;base64,' + post.thumbnail;
-                    image.className = 'post-image';
-                    
-                    let container = document.createElement('div');
-                    container.className = 'post-container';
-                  
-                    container.appendChild(image);
-                    feedPost.appendChild(container);
-                }
-                
-                feedUl.appendChild(feedPost);
-                main.appendChild(feedUl);
-                
-                document.getElementById('root').appendChild(main);
-                
+    if (localStorage.getItem('token') === null) {
+        console.log("here no");
+         fetch(`${apiUrl}/post/public`)
+            .then(response => response.json())
+            .then(json => makeFeed(json))
+    } else {
+        console.log("here yah");
+        var userToken = localStorage.getItem('token');
+        let optionsUserFeed = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+	            'Authorization': 'Token '+ userToken
             }
-            // remove the fake template post
-            feedLi.remove();
-        })
+        }
+        fetch(`${apiUrl}/user/feed`, optionsUserFeed)
+            .then(response => response.json())
+            .then(json => makeFeed(json))
+    }  
+    
+    function makeFeed(json) {
+        // sorting posts from most recent to least
+        let postData = json.posts;
+        let sortedPosts = postData.sort(function(a, b){
+            return b.meta.published-a.meta.published
+        });
+        
+        // adding the post to the feed
+        for(let post of sortedPosts) {
+            // clone the template post element and modify details for 
+            // each post
+            let feedPost = feedLi.cloneNode(true);
+            
+            // use console.log to check which childNode should be 
+            // picked to get a specific element of the post
+            // console.log(feedPost);
+            let title = feedPost.childNodes[1].childNodes[0];
+            title.textContent = post.title;
+            let author = feedPost.childNodes[1].childNodes[1];
+            author.textContent = "Posted by " + post.meta.author;
+            let upvotes = feedPost.firstChild;
+            upvotes.textContent = post.meta.upvotes.length;
+            let date = feedPost.childNodes[1].childNodes[2];
+            date.textContent = timeConverter(post.meta.published);
+            date.className = 'post-date';
+            let description = feedPost.childNodes[1].childNodes[3];
+            description.textContent = post.text;
+            let comments = feedPost.childNodes[1].childNodes[4];
+            comments.textContent = post.comments.length + ' comments';
+            let subseddit = feedPost.childNodes[1].childNodes[5];
+            subseddit.textContent = post.meta.subseddit;
+            
+            // add in the image only if it exists 
+            if (post.image !== null) {
+                let image = new Image();
+                image.src = 'data:image/png;base64,' + post.thumbnail;
+                image.className = 'post-image';
+                
+                let container = document.createElement('div');
+                container.className = 'post-container';
+              
+                container.appendChild(image);
+                feedPost.appendChild(container);
+            }
+            
+            feedUl.appendChild(feedPost);
+            main.appendChild(feedUl);
+            
+            document.getElementById('root').appendChild(main);
+            
+        }
+        // remove the fake template post
+        feedLi.remove();          
+    }
    
     // converts UNIX timestamps to date timestamps
     function timeConverter(UNIX_timestamp){

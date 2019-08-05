@@ -4,10 +4,12 @@
 
 .feed-comments {
  float: right;
+ color: rgb(80,80,80);
 }
 
 .feed-subseddit {
  float: left;
+ color: var(--reddit-blue);
 }
 
 .post-container {
@@ -19,3 +21,4 @@
  width: 100%;
  height: auto;
 }
+
