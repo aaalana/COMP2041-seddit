@@ -11,7 +11,7 @@
 // different datasets.
 function initApp(apiUrl) {
     // your app initialisation goes here
-    
+   
     // MAKING THE BASIC WEBPAGE SKELETON 
     
     // MAKING THE HEADER //
@@ -184,7 +184,7 @@ function initApp(apiUrl) {
     loginPasswordField.required = true;
     
     const loginSubmit = document.createElement('button');
-    loginSubmit.type = 'submit';
+    loginSubmit.type = 'button';
     loginSubmit.className = 'login-btn';
     loginSubmit.textContent = 'Submit';
     
@@ -252,65 +252,56 @@ function initApp(apiUrl) {
         document.getElementById('sign-up').style.display = 'block';
         document.getElementById('login').style.display = 'none';
     }
-   
+     
     // submit user details into user data base when the submit button 
     // is clicked
     // note: sign up is failing for subset 0
-    fetch('./data/feed.json').then(r=>r.text()).then(r => console.log(r))
-     signSubmit.onclick = () => {
+    
+    signSubmit.onclick = () => {
+        console.log("yeah");
         let username = document.getElementById('sign-username').value;
         let password = document.getElementById('sign-password').value;
         
-      
-        // opens the user database and finds if the username signed up
-        // exists in the user database
-        let user = '';
-        let url = "../data/users.json";
+        let userUrl = "../data/users.json";
         const request = new XMLHttpRequest();
-        request.open('GET', url);
-        request.responseType = 'json';
-        request.send();
-        request.onload = function() {
-          let userData = request.response;
-          user = userData.find(function(user) { 
-            return user.username == username 
-          });
+        request.open('GET', userUrl);
+        request.onreadystatechange = function() { 
+            if (this.readyState == 4 && this.status == 200) {
+                let userData = JSON.parse(this.responseText);
+                let user = userData.find(function(user) { 
+                    return user.username == username 
+                });
+                inputValidate(user, username, password);
+            }
         }
-
-        // basic input validation 
-        
-        // 'require' attribute is already in sign up fields so that 
-        // usernames and passwords must contain at least one character
-             
+        request.send();
+    }
+   
+    // basic input validation 
+            
+    // 'require' attribute is already in sign up fields so that 
+    // usernames and passwords must contain at least one character
+    function inputValidate(user, username, password) {
         // usernames must contain letters and numbers
-        //console.log(user);
         const legalChars = /\w/;
         if (!username.match(legalChars) || !password.match(legalChars)) {
-	        let error = "Error: The username/password contains illegal characters.";
-		    alert(error);
-        // usernames must be available and not found in the database
+	        let error = `Error: The username/password contains illegal
+	                     characters.`;
+	        alert(error);
+        // check if the username signed up exists in the user database
         } else if (typeof user !== 'undefined') {
             let error = "Error: This username has been taken.";
-		    alert(error);
+	        alert(error);
         } else {
-            console.log(user);
-            console.log(user.username);
             alert("Error: Sign up has failed! :(");
         }
-      
-        /*fetch('../data/users.json')
-        	.then(res => res.json())
-	        .then(json => {
-	            console.log("yes");
-	          
-	        })*/
     }
     
     // close the sign up form when the close button is clicked
     signClose.onclick = () => {
         document.getElementById('sign-up').style.display = 'none';
     }
-    
+   
     // FEED INTERFACE
     // getting data from feed.json
     let url = "../data/feed.json";
@@ -325,8 +316,6 @@ function initApp(apiUrl) {
             let sortedPosts = postData.sort(function(a, b){
                 return b.meta.published-a.meta.published
             });
-            
-            // console.log(sortedPosts);
             
             // adding the post to the feed
             for(let post of sortedPosts) {
@@ -358,7 +347,12 @@ function initApp(apiUrl) {
                     let image = new Image();
                     image.src = 'data:image/png;base64,' + post.image;
                     image.className = 'post-image';
-                    feedPost.appendChild(image);
+                    
+                    let container = document.createElement('div');
+                    container.className = 'post-container';
+                  
+                    container.appendChild(image);
+                    feedPost.appendChild(container);
                 }
                 
                 feedUl.appendChild(feedPost);
@@ -370,7 +364,7 @@ function initApp(apiUrl) {
             // remove the fake template post
             feedLi.remove();
         }
-    
+   
     // converts UNIX timestamps to date timestamps
     function timeConverter(UNIX_timestamp){
         let date = new Date(UNIX_timestamp * 1000);
