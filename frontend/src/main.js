@@ -16,6 +16,7 @@ function initApp(apiUrl) {
     
     // MAKING THE HEADER //
     // CREATING ELEMENT FOR THE HEADER
+    
     const header = document.createElement('header');
     header.className = 'banner';
     header.id = 'nav';
@@ -165,6 +166,7 @@ function initApp(apiUrl) {
     loginDiv.id = 'login';
     const loginForm = document.createElement('form');
     loginForm.className = 'form-container';
+    loginForm.id = 'login-form';
     const loginTitle = document.createElement('h1');
     loginTitle.id = 'title-form';
     loginTitle.textContent = 'Login';
@@ -177,11 +179,13 @@ function initApp(apiUrl) {
     loginUserField.placeholder = 'Enter Username';
     loginUserField.type = 'text';
     loginUserField.required = true;
-     
+    loginUserField.id = 'login-username';
+   
     const loginPasswordField = document.createElement('input');
     loginPasswordField.placeholder = 'Enter Password';
     loginPasswordField.type = 'text';
     loginPasswordField.required = true;
+    loginPassword.id = 'login-password';
     
     const loginSubmit = document.createElement('button');
     loginSubmit.type = 'button';
@@ -205,6 +209,10 @@ function initApp(apiUrl) {
     
     document.getElementById('root').appendChild(loginDiv);
     
+   // Login The login form now communicates with the backend (POST /login) after input validation to verify whether the provided credentials are valid for an existing user. Once the user has logged in, they should see their own news feed (the home page).
+
+//NB. This is slightly different to what they will see as a non-logged in user. A non-logged in user should still see posts from GET /post/public.
+
     // buttons functionality for login
     
     // open the login form and close the sign up form (if open) when
@@ -214,9 +222,57 @@ function initApp(apiUrl) {
         document.getElementById('sign-up').style.display = 'none';
     }
  
+    let username = document.getElementById('login-username').value;
+    let password = document.getElementById('login-password').value;
+       
+    let payload = {
+      "username": `${username}`,
+      "password": `${password}`
+    }
+    /*
+    let options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+	        //'Authorization': 'Token '+ userToken
+        }
+        body: JSON.stringify(payload);
+    }
+  
+    fetch(`${apiUrl}/auth/login`, options)
+        .then(response => response.text())
+        .then(json => {
+            console.log(json);  
+        });*/
+        
+    let userUrl = `${apiUrl}/auth/login`;
+    const request = new XMLHttpRequest();
+    request.open('POST', userUrl, true);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.responseType = 'json';
+    request.send(JSON.stringify(payload));
+    request.onload = function() {
+        console(request.response);
+    }
+ 
     // log the user in
     loginSubmit.onclick = () => {
-        alert("Login has failed! :(");
+        let username = document.getElementById('login-username').value;
+        let password = document.getElementById('login-password').value;
+       
+        // extract data from the user database for login validation
+        let userUrl = "../../backend/db/users.csv";
+        const request = new XMLHttpRequest();
+        request.open('GET', userUrl);
+        request.responseType = 'json';
+        request.send();
+        request.onload = function() {
+        //alert("Login has failed! :(");
+            let userExists = request.response.find(function(user) { 
+                return user.username == username 
+            });
+        }    
+        document.getElementById('login-form').submit();
     }
     
     // close the login form when the close button is clicked
@@ -229,6 +285,7 @@ function initApp(apiUrl) {
     const signDiv = loginDiv.cloneNode(true);
     signDiv.id = 'sign-up';
     const children = signDiv.firstChild.childNodes;
+    signDiv.firstChild.id = 'signup-form';
     
     // Change login title to signUp
     const signTitle = children[0];
@@ -256,32 +313,33 @@ function initApp(apiUrl) {
     // submit user details into user data base when the submit button 
     // is clicked
     // note: sign up is failing for subset 0
-    
     signSubmit.onclick = () => {
-        console.log("yeah");
         let username = document.getElementById('sign-username').value;
         let password = document.getElementById('sign-password').value;
-        
+       
+        // extract data from the user database for sign up validation
         let userUrl = "../data/users.json";
         const request = new XMLHttpRequest();
         request.open('GET', userUrl);
-        request.onreadystatechange = function() { 
-            if (this.readyState == 4 && this.status == 200) {
-                let userData = JSON.parse(this.responseText);
-                let user = userData.find(function(user) { 
-                    return user.username == username 
-                });
-                inputValidate(user, username, password);
-            }
-        }
+        request.responseType = 'json';
         request.send();
+        request.onload = function() {
+            let userData = request.response;
+            let user = userData.find(function(user) { 
+                return user.username == username 
+            });
+            signValidate(user, username, password);
+        }
+        
+        // submit new user information
+        document.getElementById('signup-form').submit();
     }
    
     // basic input validation 
             
     // 'require' attribute is already in sign up fields so that 
     // usernames and passwords must contain at least one character
-    function inputValidate(user, username, password) {
+    function signValidate(user, username, password) {
         // usernames must contain letters and numbers
         const legalChars = /\w/;
         if (!username.match(legalChars) || !password.match(legalChars)) {
@@ -310,7 +368,6 @@ function initApp(apiUrl) {
         request2.responseType = 'json';
         request2.send();
         request2.onload = function() {
-            
             // sorting posts from most recent to least
             let postData = request2.response.posts;
             let sortedPosts = postData.sort(function(a, b){
@@ -345,7 +402,7 @@ function initApp(apiUrl) {
                 // add in the image only if it exists 
                 if (post.image !== null) {
                     let image = new Image();
-                    image.src = 'data:image/png;base64,' + post.image;
+                    image.src = 'data:image/png;base64,' + post.thumbnail;
                     image.className = 'post-image';
                     
                     let container = document.createElement('div');
