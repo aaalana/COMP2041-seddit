@@ -1,0 +1,5 @@
+3/08/19     17:40   23:15   -Subset 0 login and registration completed
+
+4/08/19     19:00   11:30   -Subset 0 feed completed
+                            -basic CSS added
+5/09/19     16:00   18:00   -Registration input validation bug fixed

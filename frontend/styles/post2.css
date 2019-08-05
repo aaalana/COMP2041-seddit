@@ -1,0 +1,21 @@
+.post .content {
+  width: 100%;
+}
+
+.feed-comments {
+ float: right;
+}
+
+.feed-subseddit {
+ float: left;
+}
+
+/*
+.post-container {
+ width: 200px;
+ height: 200px;
+}
+
+.post-image {
+ height: auto;
+}*/
