@@ -143,6 +143,7 @@ function initApp(apiUrl) {
     
     const feedDescript = document.createElement('p');
     feedDescript.textContent = 'description: text 7';
+    feedDescript.className = 'post-description'
     
     const feedComments = document.createElement('span');
     feedComments.textContent = '0 comments';
@@ -520,6 +521,39 @@ function initApp(apiUrl) {
         let time = ' at '+ hour.substr(-2) + ':' + min.substr(-2) + ', ' + day + ' ' + month + ' ' + year;
         return time;
     }
+    
+    // UPVOTES
+    
+    // make modal window
+    const modalScreen = document.createElement('div');
+    modalScreen.className = 'black-bg';
+   
+    const modalWindow = document.createElement('div');
+    modalWindow.className = 'upvote-content';
+    
+    const closeUpvote = document.createElement('span');
+    closeUpvote.className = 'material-icons';
+    closeUpvote.id = 'close-button';
+    closeUpvote.textContent = 'close';
+    
+    const upvoteUsers = document.createElement('p');
+    upvoteUsers.textContent = 'yes';
+    
+    modalWindow.appendChild(closeUpvote);
+    modalWindow.appendChild(upvoteUsers);
+    modalScreen.appendChild(modalWindow);
+    document.getElementById('root').appendChild(modalScreen);
+    
+    // when the upvote button is clicked on, open the modal window.
+    let upvoteBtns = document.getElementsByClassName('vote');
+    window.addEventListener('click', function(e) {
+        for (let btn of upvoteBtns) {
+            if (btn == e.target) {
+                btn.style.cursor = 'pointer';
+                modalScreen.style.visibility = 'visible';
+            }              
+        }
+    });       
 }
 
 export default initApp;

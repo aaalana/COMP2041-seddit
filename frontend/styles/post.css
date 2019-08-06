@@ -2,6 +2,7 @@
 .post {
   display: flex;
   overflow: hidden;
+  height: 150px;
   margin: 20px 0;
   background-color: white;
   border: 1px solid var(--reddit-grey);
@@ -10,6 +11,11 @@
 .post .vote {
   width: 35px;
   background-color: var(--reddit-light-grey);
+  opacity: 1;
+}
+
+.post .vote:hover {
+  opacity: 0.5;
 }
 
 .post .content {
