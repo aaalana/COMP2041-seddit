@@ -33,6 +33,16 @@ p.post-description {
   text-overflow: ellipsis; 
 }
 
+#thumbs-up {
+ color: rgb(80,80,80);
+ float: right;
+ visibility: hidden;
+}
+
+#thumbs-up:hover {
+ color: var(--reddit-blue);
+}
+
 /*modal window*/
 .black-bg {
   position: fixed;

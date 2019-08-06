@@ -129,7 +129,7 @@ function initApp(apiUrl) {
     feedTitle.className = 'post-title alt-text';
     feedTitle.textContent = `Avenger’s Endgame Officially Passes Avatar To
                              Become The Highest Grossing Movie Of All Time`;
-                     
+               
     const feedPara = document.createElement('span');
     feedPara.className = 'post-author'; 
     const authorAttribute = document.createAttribute('data-id-author');
@@ -142,6 +142,11 @@ function initApp(apiUrl) {
     feedDate.textContent = '4/08/2019';
     feedDate.className = 'post-date'
     
+    const feedThumbsUp = document.createElement('span');
+    feedThumbsUp.className = 'material-icons';
+    feedThumbsUp.id = 'thumbs-up';
+    feedThumbsUp.textContent = 'thumb_up';
+        
     const feedDescript = document.createElement('p');
     feedDescript.textContent = 'description: text 7';
     feedDescript.className = 'post-description'
@@ -163,6 +168,7 @@ function initApp(apiUrl) {
     content.appendChild(feedPara);
     
     content.appendChild(feedDate);
+    content.appendChild(feedThumbsUp);
     content.appendChild(feedDescript);
     content.appendChild(feedComments);
     content.appendChild(feedSubseddit);
@@ -444,6 +450,9 @@ function initApp(apiUrl) {
                         logout.style.display = 'inline-block';
                         headerButtonL.style.display = 'none';
                         headerButtonS.style.display = 'none';
+                        let thumbs = document.querySelectorAll('#thumbs-up');
+                        for (let thumb of thumbs)
+                            thumb.style.visibility = 'visible';
                         makeFeed(json);
                         localStorage.setItem('login', true);
                     }
@@ -459,6 +468,10 @@ function initApp(apiUrl) {
     }
     
     function makeFeed(json) {
+        // make sure the user id is stored in local storage
+        getUserId();
+        let userId = localStorage.getItem('userId');
+        
         // sorting posts from most recent to least
         let postData = json.posts;
         let sortedPosts = postData.sort(function(a, b){
@@ -469,9 +482,10 @@ function initApp(apiUrl) {
         for(let post of sortedPosts) {
             // clone the template post element and modify details for 
             // each post
+           
             let feedPost = feedLi.cloneNode(true);
             feedPost.id = post.id;
-            
+           
             let title = feedPost.childNodes[1].childNodes[0];
             title.textContent = post.title;
             let author = feedPost.childNodes[1].childNodes[1];
@@ -481,11 +495,16 @@ function initApp(apiUrl) {
             let date = feedPost.childNodes[1].childNodes[2];
             date.textContent = timeConverter(post.meta.published);
             date.className = 'post-date';
-            let description = feedPost.childNodes[1].childNodes[3];
+            let thumb = feedPost.childNodes[1].childNodes[3];
+            // change the thumbs to blue if the user has already upvoted
+            // on the post
+            checkUserInUpvotes(post.id, userId, thumb);
+           
+            let description = feedPost.childNodes[1].childNodes[4];
             description.textContent = post.text;
-            let comments = feedPost.childNodes[1].childNodes[4];
+            let comments = feedPost.childNodes[1].childNodes[5];
             comments.textContent = post.comments.length + ' comments';
-            let subseddit = feedPost.childNodes[1].childNodes[5];
+            let subseddit = feedPost.childNodes[1].childNodes[6];
             subseddit.textContent = post.meta.subseddit;
             
             // add in the image only if it exists 
@@ -619,16 +638,17 @@ function initApp(apiUrl) {
         comments.appendChild(comment);
     } 
     
-    // get the list of user ids that upvoted/commented a particular post
-    // then perform feed functionalities (see upvotes/comments)
+    // get the list of user ids 
+    // performs feed functionalities via other functions executed
+    // (show upvotes/show comments/thumbs up)
     function getPost(element, className) {
         var userToken = localStorage.getItem('token');
         if (className === 'vote')
             var postId = element.parentNode.id;
         // if our element is the number of comments
-        else
+        else if (className === 'feed-comments') 
             var postId = element.parentNode.parentNode.id;
-    
+         
         let postOptions = {
             method: 'GET',
             headers: {
@@ -644,7 +664,7 @@ function initApp(apiUrl) {
                 let postComments = json.comments;
                 if (className === 'vote')
                     showUpvotes(upvoteUsers);
-                else
+                else if (className === 'feed-comments') 
                     showComments(postComments);
             });
     } 
@@ -658,6 +678,8 @@ function initApp(apiUrl) {
                 'Authorization': 'Token '+ userToken
             }
         }
+        
+        // search users by id
         for (let id of usersId) {
             fetch(`${apiUrl}/user?id=${id}`, options)
                     .then(response => response.json())
@@ -704,6 +726,86 @@ function initApp(apiUrl) {
         // remove the template comment
         document.getElementsByClassName('comment-users')[0].remove();
     }
+    
+    // USER UPVOTE
+    
+    // allows the user to upvote posts 
+    if (localStorage.getItem('login') === 'true') {
+        window.addEventListener('click', function(e) {
+            let thumbs = document.querySelectorAll('#thumbs-up');
+           
+            for (let thumb of thumbs) {
+                if (thumb === e.target) {
+                    var userToken = localStorage.getItem('token');
+                    
+                    let options = {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Token '+ userToken
+                        }
+                    }
+                    
+                    let id = thumb.parentNode.parentNode.id;
+                    
+                    fetch(`${apiUrl}/post/vote?id=${id}`, options)
+                            .then(response => response.json())
+                            .then(json => {
+                                getUserId();
+                                // increase the upvote count if the user 
+                                // hasn't already voted
+                                if (thumb.style.color != '#0079D3')
+                                    thumb.parentNode.previousSiblings.textContent++;
+                                thumb.style.color = '#0079D3';
+                            })
+                }
+            } 
+        })  
+    } 
+    
+    // change the colour of the thumbs up icons to blue if the user
+    // has voted on a particular post
+    function checkUserInUpvotes(postId, userId, thumb) {
+        var userToken = localStorage.getItem('token');
+        let postOptions = {
+            method: 'GET',
+            headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token '+ userToken
+            }
+        }
+       
+        fetch(`${apiUrl}/post?id=${postId}`, postOptions)
+            .then(response => response.json())
+            .then(json => {
+                let upvoteUsers = json.meta.upvotes;
+                let voted = upvoteUsers.find(function(voterId) {
+                    return voterId == userId;
+                });
+                
+                if (voted) 
+                    thumb.style.color = '#0079D3';
+            });
+    } 
+    
+    // finds the logged in user's id and stores it in local storage
+    function getUserId() {
+        var userToken = localStorage.getItem('token');
+        var username = localStorage.getItem('user');
+        let options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Token '+ userToken
+            }
+        }
+        
+        fetch(`${apiUrl}/user?username=${username}`, options)
+            .then(response => response.json())
+            .then(json => {
+                localStorage.setItem('userId', json.id);  
+            });
+    }       
 }
 
 export default initApp;
