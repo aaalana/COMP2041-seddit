@@ -865,6 +865,7 @@ function initApp(apiUrl) {
     const postTitle = document.createElement('p');
     postTitle.textContent = 'Title';
     const inputTitle = document.createElement('input');
+    inputTitle.id = 'post-title';
     inputTitle.placeholder = 'Enter Title';
     inputTitle.type = 'text';
     inputTitle.required = true;
@@ -872,12 +873,14 @@ function initApp(apiUrl) {
     const postDescript = document.createElement('p');
     postDescript.textContent = 'Description';
     const inputDescript = document.createElement('textarea');
+    inputDescript.id = 'post-description';
     inputDescript.placeholder = 'Enter Description';
     inputDescript.required = true;
     
     const postSubseddit = document.createElement('p');
     postSubseddit.textContent = 'Subseddit';
     const inputSubseddit = document.createElement('input');
+    inputSubseddit.id = 'post-subseddit';
     inputSubseddit.placeholder = 'Enter Subseddit';
     inputSubseddit.type = 'text';
     
@@ -885,7 +888,16 @@ function initApp(apiUrl) {
     const postImage = document.createElement('p');
     postImage.textContent = 'Upload Image';
     const inputImage = document.createElement('input');
+    inputImage.id = 'post-image';
     inputImage.type = 'file';
+    
+    const postError = document.createElement('p');
+    postError.className = 'input-error';
+    
+    const postSubmit = document.createElement('button');
+    postSubmit.type = 'button';
+    postSubmit.className = 'publish-btn';
+    postSubmit.textContent = 'PUBLISH';
     
     // append elements of the making post form
     postImage.appendChild(inputImage);
@@ -897,23 +909,67 @@ function initApp(apiUrl) {
     postDiv.appendChild(postDescript);
     postDiv.appendChild(postSubseddit);
     postDiv.appendChild(postImage);
+    postDiv.appendChild(postError);
+    postDiv.appendChild(postSubmit);
     
     modalPost.getElementsByTagName("h1")[0].appendChild(postDiv);
     document.getElementById('root').appendChild(modalPost);
-    console.log(modalPost.firstChild);
-    /*
-   "title": "My favourite Lad",
-   "text": "i had a fun time!",
-  "subseddit": "jeffgoldbloom",
-  "image":*/
+    
+    let closePost = modalPost.firstChild.firstChild;
+    closePost.onclick = () => {
+        modalPost.style.visibility = 'hidden';
+    }
+    
+    postSubmit.onclick = () => {
+        var userToken = localStorage.getItem('token');
+        let title = document.getElementById('post-title').value;
+        let text = document.getElementById('post-description').value;
+        let subseddit = document.getElementById('post-subseddit').value;
+     
+        // if an image is uploaded - convert to base 64
+        let img = new Image();
+        let image = document.querySelector('input[type=file]').files[0];
+        var reader  = new FileReader();
+       
+        if (image) {
+           // convert to base64
+           reader.readAsDataURL(image);
+        }
+        reader.onloadend = function() {
+            let url = reader.result.split(',')[1];
+            console.log(url);
+            localStorage.setItem('image',url);
+        }
+        
+        // get the base 64 url of the image
+        let url = localStorage.getItem('image');
+        
+        // continue with publishing the user's post
+        let payload = {
+            "title": `${title}`,
+            "text": `${text}`,
+            "subseddit": `${subseddit}`,
+            "image": `${url}`
+        }   
+        
+        let postOptions = {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token '+ userToken
+            },
+            body: JSON.stringify(payload)
+        }
+       
+        fetch(`${apiUrl}/post/`, postOptions)
+            .then(response => response.json())
+            .then(json => {
+                console.log(json);
+            });
+    }
+  
     postBtn.onclick = () => {
         modalPost.style.visibility = 'visible';
-        /* image.src = 'data:image/png;base64,' + post.thumbnail;
-                image.className = 'post-image';
-                
-                let container = document.createElement('div');
-                container.className = 'post-container';*/
-              
     }
     
  

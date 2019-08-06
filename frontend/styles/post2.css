@@ -154,3 +154,18 @@ p.post-description {
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+.publish-btn {
+  background-color: var(--reddit-blue);
+  color: white;
+  width: 30%;
+  opacity: 0.8;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 16px 20px;
+}
+
+.publish-btn:hover {
+  opacity: 1;
+}
