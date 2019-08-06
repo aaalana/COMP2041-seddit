@@ -729,39 +729,70 @@ function initApp(apiUrl) {
     
     // USER UPVOTE
     
-    // allows the user to upvote posts 
+    // allows the user to upvote posts and delete their votes
     if (localStorage.getItem('login') === 'true') {
         window.addEventListener('click', function(e) {
             let thumbs = document.querySelectorAll('#thumbs-up');
-           
             for (let thumb of thumbs) {
-                if (thumb === e.target) {
-                    var userToken = localStorage.getItem('token');
-                    
-                    let options = {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Token '+ userToken
-                        }
-                    }
-                    
-                    let id = thumb.parentNode.parentNode.id;
-                    
-                    fetch(`${apiUrl}/post/vote?id=${id}`, options)
-                            .then(response => response.json())
-                            .then(json => {
-                                getUserId();
-                                // increase the upvote count if the user 
-                                // hasn't already voted
-                                if (thumb.style.color != '#0079D3')
-                                    thumb.parentNode.previousSiblings.textContent++;
-                                thumb.style.color = '#0079D3';
-                            })
+                if (thumb.style.color != 'rgb(0, 121, 211)') {
+                    console.log(thumb.style.color);
+                    upvotePost(e, thumb);
+                } else {
+                    deleteVote(e, thumb);
                 }
-            } 
+            }
         })  
     } 
+    
+    function upvotePost(e, thumb) {
+        if (thumb === e.target) {
+            var userToken = localStorage.getItem('token');
+            
+            let options = {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Token '+ userToken
+                }
+            }
+            
+            let id = thumb.parentNode.parentNode.id;
+            fetch(`${apiUrl}/post/vote?id=${id}`, options)
+                .then(response => response.json())
+                .then(json => {
+                    getUserId();
+                    // increase the upvote count if the user 
+                    // hasn't already voted
+                    if (thumb.style.color != 'rgb(0, 121, 211)')
+                        thumb.parentNode.previousSibling.textContent++;
+                    thumb.style.color = 'rgb(0, 121, 211)';
+                })
+        }
+    }  
+    
+    function deleteVote(e, thumb) {
+        if (thumb === e.target) {
+            var userToken = localStorage.getItem('token');
+            let options = {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Token '+ userToken
+                }
+            }
+            
+            let id = thumb.parentNode.parentNode.id;
+            fetch(`${apiUrl}/post/vote?id=${id}`, options)
+                .then(response => response.json())
+                .then(json => {
+                    getUserId();
+                    // decrease the upvote count
+                    if (thumb.style.color == 'rgb(0, 121, 211)')
+                        thumb.parentNode.previousSibling.textContent--;
+                    thumb.style.color = 'rgb(80,80,80)';
+                })
+        }   
+    }  
     
     // change the colour of the thumbs up icons to blue if the user
     // has voted on a particular post
@@ -784,7 +815,7 @@ function initApp(apiUrl) {
                 });
                 
                 if (voted) 
-                    thumb.style.color = '#0079D3';
+                    thumb.style.color = 'rgb(0, 121, 211)';
             });
     } 
     
