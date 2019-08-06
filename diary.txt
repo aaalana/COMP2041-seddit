@@ -2,4 +2,7 @@
 
 4/08/19     19:00   11:30   -Subset 0 feed completed
                             -basic CSS added
-5/09/19     16:00   18:00   -Registration input validation bug fixed
+5/09/19     16:00   23:50   -Registration input validation bug fixed
+                            -Level 1 completed
+                            -Log out functionality added
+6/09/19                            

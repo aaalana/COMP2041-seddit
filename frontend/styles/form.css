@@ -1,5 +1,19 @@
+#logged-user {
+  padding-right: 20px;
+  color: var(--reddit-blue);
+}
+
+#logout {
+  display: none;
+}
+
+#login-form label, #signup-form label {
+  font-size: 14px;
+}
+
 .input-error {
   color: red;
+  font-size: 14px;
 }
 
 .form-popup {

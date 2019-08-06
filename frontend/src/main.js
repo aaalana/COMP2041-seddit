@@ -58,17 +58,32 @@ function initApp(apiUrl) {
     const signUpAttribute = document.createAttribute('data-id-signup');
     headerButtonS.setAttributeNode(signUpAttribute);    
     
+    // logged in as <user>
+    const headerLiUser = headerLiSearch.cloneNode(true);
+    const loggedUser = document.createElement('span');
+    loggedUser.id = 'logged-user';
+    
+    // log out button
+    const headerLiLogout = headerLiSearch.cloneNode(true);
+    const headerLogout = headerButtonL.cloneNode(true);
+    headerLogout.id = 'logout';
+    headerLogout.textContent = 'Log Out';
+    headerLogout.removeAttribute('data-id-login');
+        
     // APPENDING ELEMENTS TO HEADER
     header.appendChild(headerH1);
     
     headerLiSearch.appendChild(headerSearch);
     headerLiLogin.appendChild(headerButtonL);
     headerLiSignUp.appendChild(headerButtonS);
+    headerLiUser.appendChild(loggedUser);
+    headerLiLogout.appendChild(headerLogout);
  
     headerUl.appendChild(headerLiSearch);
     headerUl.appendChild(headerLiLogin);
     headerUl.appendChild(headerLiSignUp);
- 
+    headerUl.appendChild(loggedUser);
+    headerUl.appendChild(headerLogout);
     header.appendChild(headerUl);
     
     // APPENDING HEADER TO DOCUMENT
@@ -157,7 +172,6 @@ function initApp(apiUrl) {
     // APPENDING MAIN TO DOCUMENT
     document.getElementById('root').appendChild(main);
     
-    // SUBSET 0 //
     // LOGIN
     
     // creating elements of the login form
@@ -167,7 +181,7 @@ function initApp(apiUrl) {
     const loginForm = document.createElement('form');
     loginForm.className = 'form-container';
     loginForm.id = 'login-form';
-    const loginTitle = document.createElement('h1');
+    const loginTitle = document.createElement('h2');
     loginTitle.id = 'title-form';
     loginTitle.textContent = 'Login';
     const loginUser = document.createElement('label');
@@ -212,11 +226,7 @@ function initApp(apiUrl) {
     loginDiv.appendChild(loginForm);
     
     document.getElementById('root').appendChild(loginDiv);
-    
-   // Login The login form now communicates with the backend (POST /login) after input validation to verify whether the provided credentials are valid for an existing user. Once the user has logged in, they should see their own news feed (the home page).
-
-//NB. This is slightly different to what they will see as a non-logged in user. A non-logged in user should still see posts from GET /post/public.
-
+   
     // buttons functionality for login
     
     // open the login form and close the sign up form (if open) when
@@ -242,7 +252,6 @@ function initApp(apiUrl) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-	            //'Authorization': 'Token '+ userToken
             },
             body: JSON.stringify(payload)
         }
@@ -256,6 +265,7 @@ function initApp(apiUrl) {
                     inputError.textContent = json.message;
                 } else {
                     localStorage.setItem('token', `${json.token}`);
+                    localStorage.setItem('user', `${username}`);
                     document.getElementById('login-form').submit();
                 }
             });
@@ -270,7 +280,7 @@ function initApp(apiUrl) {
     // duplicate login form and modify to make the signup form
     const signDiv = loginDiv.cloneNode(true);
     signDiv.id = 'sign-up';
-    const children = signDiv.firstChild.childNodes;
+    let children = signDiv.firstChild.childNodes;
     signDiv.firstChild.id = 'signup-form';
     
     // Change login title to signUp
@@ -281,8 +291,32 @@ function initApp(apiUrl) {
     const signPassword = children[2].childNodes[1];
     signUsername.id = 'sign-username';
     signPassword.id = 'sign-password';
-    const signSubmit = children[3];
-    const signClose = children[4];
+    
+    const emailLabel = document.createElement('label');
+    emailLabel.textContent = 'Email';
+    const nameLabel = document.createElement('label');
+    nameLabel.textContent = 'Name';
+    
+    const signEmail = document.createElement('input');
+    signEmail.placeholder = 'Enter Email';
+    signEmail.type = 'text';
+    signEmail.required = true;
+    signEmail.id = 'sign-email';
+    emailLabel.appendChild(signEmail);
+    signDiv.firstChild.childNodes[2].insertAdjacentElement('afterend',emailLabel);
+   
+    const signName = document.createElement('input');
+    signName.placeholder = 'Enter Name';
+    signName.type = 'text';
+    signName.required = true;
+    signName.id = 'sign-name';
+    nameLabel.appendChild(signName);
+    signDiv.firstChild.childNodes[3].insertAdjacentElement('afterend', nameLabel);
+    
+    children = signDiv.firstChild.childNodes;
+    const inputError2 = children[5];
+    const signSubmit = children[6];
+    const signClose = children[7];
     signSubmit.className = 'sign-up-btn';
     signClose.className = 'sign-up-btn';
     document.getElementById('root').appendChild(signDiv);
@@ -300,62 +334,91 @@ function initApp(apiUrl) {
     // is clicked
     // note: sign up is failing for subset 0
     signSubmit.onclick = () => {
+        inputError.textContent = '';
+        
         let username = document.getElementById('sign-username').value;
         let password = document.getElementById('sign-password').value;
-       
+        let email = document.getElementById('sign-email').value;
+        let name = document.getElementById('sign-name').value;
+        
         // extract data from the user database for sign up validation
-        let userUrl = "../data/users.json";
-        const request = new XMLHttpRequest();
-        request.open('GET', userUrl);
-        request.responseType = 'json';
-        request.send();
-        request.onload = function() {
-            let userData = request.response;
-            let user = userData.find(function(user) { 
-                return user.username == username 
-            });
-            signValidate(user, username, password);
+        let payload = {
+            "username": `${username}`,
+            "password": `${password}`,
+            "email": `${email}`,
+            "name": `${name}`
         }
         
-        // submit new user information
-        document.getElementById('signup-form').submit();
+        let options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+	            //'Authorization': 'Token '+ userToken
+            },
+            body: JSON.stringify(payload)
+        }
+        if (signValidate(username, password, email, name) == true) {
+            fetch(`${apiUrl}/auth/signup`, options)
+                .then(response => response.json())
+                .then(json => {
+                     console.log(json);
+                    if (json.message) {
+                        inputError2.textContent= `Error: ${json.message}`;
+                    // create new user
+                    } else {
+                        localStorage.setItem('token', `${json.token}`);
+                        localStorage.setItem('user', `${username}`);
+                        document.getElementById('signup-form').submit();
+                    }
+                }); 
+        }
     }
-   
+    
     // basic input validation 
             
     // 'require' attribute is already in sign up fields so that 
     // usernames and passwords must contain at least one character
-    function signValidate(user, username, password) {
-        // usernames must contain letters and numbers
-        const legalChars = /\w/;
-        if (!username.match(legalChars) || !password.match(legalChars)) {
-	        let error = `Error: The username/password contains illegal
-	                     characters.`;
-	        alert(error);
-        // check if the username signed up exists in the user database
-        } else if (typeof user !== 'undefined') {
-            let error = "Error: This username has been taken.";
-	        alert(error);
-        } else {
-            alert("Error: Sign up has failed! :(");
-        }
-    }
     
+    function signValidate(username, password, email, name) {
+        // check if inputs are valid
+        const legalChars = /\w/;
+        const legalName = /^[a-zA-Z]+-?[a-zA-Z]+$/;
+        const legalEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+       
+        // input fields must contain at least one character
+        if (!username || !password || !email || !name) {
+            inputError2.textContent = 'Missing Username/Password';
+            return false;
+        } else if (!username.match(legalChars) || 
+                   !password.match(legalChars) ||
+                   !name.match(legalName) ||
+                   !email.match(legalEmail)) {
+	        inputError2.textContent = 'Error: Invalid input';
+	        return false;
+        } 
+        return true;
+    }
+      
     // close the sign up form when the close button is clicked
     signClose.onclick = () => {
         document.getElementById('sign-up').style.display = 'none';
     }
     
-    // FEED INTERFACE
-    // getting data from feed.json
+    // LOGOUT 
+    logout.onclick = () => {
+        localStorage.clear(); 
+        location.reload();
+        logout.style.display = 'none';
+        headerButtonL.style.display = 'inline-block';
+        headerButtonS.style.display = 'inline-block';
+        loggedUser.textContent = '';
+    }                
+    // FEED INTERFACE AND PAGE REMODELLING (WHEN USER LOGS IN/OUT)
     
+    // check if a token exists 
     if (localStorage.getItem('token') === null) {
-        console.log("here no");
-         fetch(`${apiUrl}/post/public`)
-            .then(response => response.json())
-            .then(json => makeFeed(json))
+        fetchPublicFeed();
     } else {
-        console.log("here yah");
         var userToken = localStorage.getItem('token');
         let optionsUserFeed = {
             method: 'GET',
@@ -364,12 +427,33 @@ function initApp(apiUrl) {
 	            'Authorization': 'Token '+ userToken
             }
         }
+        
         fetch(`${apiUrl}/user/feed`, optionsUserFeed)
             .then(response => response.json())
-            .then(json => makeFeed(json))
+            .then(json => {
+                if (json.message && 
+                    json.message == "Invalid Authorization Token") {
+                    localStorage.clear(); 
+                    fetchPublicFeed();
+                } else {
+                    let username = localStorage.getItem('user');
+                    loggedUser.textContent = `Logged in as ${username}`;
+                    logout.style.display = 'inline-block';
+                    headerButtonL.style.display = 'none';
+                    headerButtonS.style.display = 'none';
+                    makeFeed(json);
+                }
+            });
     }  
     
+    function fetchPublicFeed() {
+        fetch(`${apiUrl}/post/public`)
+            .then(response => response.json())
+            .then(json => makeFeed(json))
+    }
+    
     function makeFeed(json) {
+        console.log(json);
         // sorting posts from most recent to least
         let postData = json.posts;
         let sortedPosts = postData.sort(function(a, b){
