@@ -109,7 +109,7 @@ function initApp(apiUrl) {
     const postBtn = document.createElement('button');
     postBtn.className = 'button button-secondary';
     postBtn.textContent = 'Post';
-    
+ 
     const feedLi = document.createElement('li');
     feedLi.className = 'post';
     const postAttribute = document.createAttribute('data-id-post');
@@ -846,7 +846,77 @@ function initApp(apiUrl) {
             .then(json => {
                 localStorage.setItem('userId', json.id);  
             });
-    }       
+    }     
+    
+    // POST NEW CONTENT
+    
+    // make a modal window to post new content 
+    const modalPost = modalUpvotes.cloneNode(true);
+    modalPost.id = 'post-screen';
+    modalPost.getElementsByTagName("h1")[0].textContent = 'Make a new post';
+    modalPost.getElementsByTagName("ul")[0].remove();
+    
+    modalPost.firstChild.className = 'post-content'; 
+    
+    // make form elements for user input when posting
+    const postDiv = document.createElement('div');
+    postDiv.className = 'post-form';
+    
+    const postTitle = document.createElement('p');
+    postTitle.textContent = 'Title';
+    const inputTitle = document.createElement('input');
+    inputTitle.placeholder = 'Enter Title';
+    inputTitle.type = 'text';
+    inputTitle.required = true;
+    
+    const postDescript = document.createElement('p');
+    postDescript.textContent = 'Description';
+    const inputDescript = document.createElement('textarea');
+    inputDescript.placeholder = 'Enter Description';
+    inputDescript.required = true;
+    
+    const postSubseddit = document.createElement('p');
+    postSubseddit.textContent = 'Subseddit';
+    const inputSubseddit = document.createElement('input');
+    inputSubseddit.placeholder = 'Enter Subseddit';
+    inputSubseddit.type = 'text';
+    
+    //const postImage = document.createElement('canvas');
+    const postImage = document.createElement('p');
+    postImage.textContent = 'Upload Image';
+    const inputImage = document.createElement('input');
+    inputImage.type = 'file';
+    
+    // append elements of the making post form
+    postImage.appendChild(inputImage);
+    postSubseddit.appendChild(inputSubseddit);
+    postDescript.appendChild(inputDescript);
+    postTitle.appendChild(inputTitle);
+    
+    postDiv.appendChild(postTitle);
+    postDiv.appendChild(postDescript);
+    postDiv.appendChild(postSubseddit);
+    postDiv.appendChild(postImage);
+    
+    modalPost.getElementsByTagName("h1")[0].appendChild(postDiv);
+    document.getElementById('root').appendChild(modalPost);
+    console.log(modalPost.firstChild);
+    /*
+   "title": "My favourite Lad",
+   "text": "i had a fun time!",
+  "subseddit": "jeffgoldbloom",
+  "image":*/
+    postBtn.onclick = () => {
+        modalPost.style.visibility = 'visible';
+        /* image.src = 'data:image/png;base64,' + post.thumbnail;
+                image.className = 'post-image';
+                
+                let container = document.createElement('div');
+                container.className = 'post-container';*/
+              
+    }
+    
+ 
 }
 
 export default initApp;
