@@ -140,6 +140,7 @@ function initApp(apiUrl) {
     // images not added
     const feedDate = document.createElement('span');
     feedDate.textContent = '4/08/2019';
+    feedDate.className = 'post-date'
     
     const feedDescript = document.createElement('p');
     feedDescript.textContent = 'description: text 7';
@@ -267,6 +268,7 @@ function initApp(apiUrl) {
                 } else {
                     localStorage.setItem('token', `${json.token}`);
                     localStorage.setItem('user', `${username}`);
+                    localStorage.setItem('login', true);
                     document.getElementById('login-form').submit();
                 }
             });
@@ -354,7 +356,6 @@ function initApp(apiUrl) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-	            //'Authorization': 'Token '+ userToken
             },
             body: JSON.stringify(payload)
         }
@@ -362,13 +363,13 @@ function initApp(apiUrl) {
             fetch(`${apiUrl}/auth/signup`, options)
                 .then(response => response.json())
                 .then(json => {
-                     console.log(json);
                     if (json.message) {
                         inputError2.textContent= `Error: ${json.message}`;
                     // create new user
                     } else {
                         localStorage.setItem('token', `${json.token}`);
                         localStorage.setItem('user', `${username}`);
+                        localStorage.setItem('login', true);
                         document.getElementById('signup-form').submit();
                     }
                 }); 
@@ -414,38 +415,42 @@ function initApp(apiUrl) {
         headerButtonS.style.display = 'inline-block';
         loggedUser.textContent = '';
     }                
-    // FEED INTERFACE AND PAGE REMODELLING (WHEN USER LOGS IN/OUT)
     
-    // check if a token exists 
-    if (localStorage.getItem('token') === null) {
-        fetchPublicFeed();
-    } else {
-        var userToken = localStorage.getItem('token');
-        let optionsUserFeed = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-	            'Authorization': 'Token '+ userToken
-            }
-        }
-        
-        fetch(`${apiUrl}/user/feed`, optionsUserFeed)
-            .then(response => response.json())
-            .then(json => {
-                if (json.message && 
-                    json.message == "Invalid Authorization Token") {
-                    localStorage.clear(); 
-                    fetchPublicFeed();
-                } else {
-                    let username = localStorage.getItem('user');
-                    loggedUser.textContent = `Logged in as ${username}`;
-                    logout.style.display = 'inline-block';
-                    headerButtonL.style.display = 'none';
-                    headerButtonS.style.display = 'none';
-                    makeFeed(json);
+    // FEED INTERFACE AND PAGE REMODELLING (WHEN USER LOGS IN/OUT)
+    function checkUserLoggedIn() {
+        // check if a token exists 
+        if (localStorage.getItem('token') === null) {
+            fetchPublicFeed();
+            localStorage.setItem('login', false);
+        } else {
+            var userToken = localStorage.getItem('token');
+            let optionsUserFeed = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+	                'Authorization': 'Token '+ userToken
                 }
-            });
-    }  
+            }
+            fetch(`${apiUrl}/user/feed`, optionsUserFeed)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.message && 
+                        json.message == "Invalid Authorization Token") {
+                        localStorage.clear(); 
+                        localStorage.setItem('login', false);
+                    } else {
+                        let username = localStorage.getItem('user');
+                        loggedUser.textContent = `Logged in as ${username}`;
+                        logout.style.display = 'inline-block';
+                        headerButtonL.style.display = 'none';
+                        headerButtonS.style.display = 'none';
+                        makeFeed(json);
+                        localStorage.setItem('login', true);
+                    }
+                });
+        }  
+    }
+    checkUserLoggedIn();
     
     function fetchPublicFeed() {
         fetch(`${apiUrl}/post/public`)
@@ -454,7 +459,6 @@ function initApp(apiUrl) {
     }
     
     function makeFeed(json) {
-        console.log(json);
         // sorting posts from most recent to least
         let postData = json.posts;
         let sortedPosts = postData.sort(function(a, b){
@@ -466,10 +470,8 @@ function initApp(apiUrl) {
             // clone the template post element and modify details for 
             // each post
             let feedPost = feedLi.cloneNode(true);
+            feedPost.id = post.id;
             
-            // use console.log to check which childNode should be 
-            // picked to get a specific element of the post
-            // console.log(feedPost);
             let title = feedPost.childNodes[1].childNodes[0];
             title.textContent = post.title;
             let author = feedPost.childNodes[1].childNodes[1];
@@ -522,12 +524,13 @@ function initApp(apiUrl) {
         return time;
     }
     
-    // UPVOTES
+    // SEE UPVOTES AND COMMENTS
     
-    // make modal window
-    const modalScreen = document.createElement('div');
-    modalScreen.className = 'black-bg';
-   
+    // make modal window for upvotes 
+    const modalUpvotes = document.createElement('div');
+    modalUpvotes.className = 'black-bg';
+    modalUpvotes.id = 'upvotes-screen';
+    
     const modalWindow = document.createElement('div');
     modalWindow.className = 'upvote-content';
     
@@ -536,24 +539,171 @@ function initApp(apiUrl) {
     closeUpvote.id = 'close-button';
     closeUpvote.textContent = 'close';
     
-    const upvoteUsers = document.createElement('p');
-    upvoteUsers.textContent = 'yes';
+    const voteTitle = document.createElement('h1');
+    voteTitle.textContent = 'Users who upvoted'
+    voteTitle.className = 'title';
+    
+    const groupedUsers = document.createElement('ul');
+    groupedUsers.className = 'grouped-users';
+    
+    const upvoteUsers = document.createElement('li');
+    upvoteUsers.className = 'upvote-users';
     
     modalWindow.appendChild(closeUpvote);
-    modalWindow.appendChild(upvoteUsers);
-    modalScreen.appendChild(modalWindow);
-    document.getElementById('root').appendChild(modalScreen);
+    modalWindow.appendChild(voteTitle);
+    groupedUsers.appendChild(upvoteUsers);
+    modalWindow.appendChild(groupedUsers);
+    modalUpvotes.appendChild(modalWindow);
+    document.getElementById('root').appendChild(modalUpvotes);
     
-    // when the upvote button is clicked on, open the modal window.
-    let upvoteBtns = document.getElementsByClassName('vote');
-    window.addEventListener('click', function(e) {
-        for (let btn of upvoteBtns) {
-            if (btn == e.target) {
+    // make modal window for comments
+    const modalComments = modalUpvotes.cloneNode(true);
+    modalComments.id = 'comments-screen';
+    document.getElementById('root').appendChild( modalComments);
+    modalComments.getElementsByTagName("h1")[0].textContent = 'Comments';
+    modalComments.getElementsByTagName("li")[0].className = 'comment-users';
+    modalComments.getElementsByTagName("ul")[0].className = 'grouped-comments';
+  
+    // functions for when the user is logged in
+    
+    // when the upvotes/comments are clicked on, open its modal window
+    function openModal(className, id) {
+        if (localStorage.getItem('login') === 'true') {
+            let btns = document.getElementsByClassName(className);
+            for (let btn of btns) 
                 btn.style.cursor = 'pointer';
-                modalScreen.style.visibility = 'visible';
-            }              
+                
+            window.addEventListener('mouseover', function(e) {
+                for (let btn of btns) {
+                    if (btn === e.target) {
+                        btn.style.opacity = "0.5";
+                        btn.onclick = () => {   
+                            // add the users into the modal window
+                            getPost(btn, className);
+                            document.getElementById(id).style.visibility = 'visible';
+                        }  
+                    } else {
+                        btn.style.opacity = "1";
+                    }                
+                }
+            }); 
         }
-    });       
+    }
+    openModal('vote', 'upvotes-screen');
+    openModal('feed-comments', 'comments-screen');
+    
+    // closes the modal window for upvotes
+    // clear the modal window
+    closeUpvote.onclick = () => {
+        modalUpvotes.style.visibility = 'hidden';
+        let users = document.getElementsByClassName('grouped-users')[0];
+        users.innerText = '';
+        
+        // remake the template user
+        const upvoteUsers = document.createElement('li');
+        upvoteUsers.className = 'upvote-users';
+        users.appendChild(upvoteUsers);
+    } 
+    
+    // closes the modal window for comments
+    // clear the modal window
+    let closeComments = modalComments.getElementsByTagName("span")[0];
+    closeComments.onclick = () => {
+        modalComments.style.visibility = 'hidden';
+        let comments = modalComments.getElementsByTagName("ul")[0];
+        comments.innerText = '';
+        
+        // remake the template comment
+        const comment = document.createElement('li');
+        comment.className = 'comment-users';
+        comments.appendChild(comment);
+    } 
+    
+    // get the list of user ids that upvoted/commented a particular post
+    // then perform feed functionalities (see upvotes/comments)
+    function getPost(element, className) {
+        var userToken = localStorage.getItem('token');
+        if (className === 'vote')
+            var postId = element.parentNode.id;
+        // if our element is the number of comments
+        else
+            var postId = element.parentNode.parentNode.id;
+    
+        let postOptions = {
+            method: 'GET',
+            headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token '+ userToken
+            }
+        }
+        
+        fetch(`${apiUrl}/post?id=${postId}`, postOptions)
+            .then(response => response.json())
+            .then(json => {
+                let upvoteUsers = json.meta.upvotes;
+                let postComments = json.comments;
+                if (className === 'vote')
+                    showUpvotes(upvoteUsers);
+                else
+                    showComments(postComments);
+            });
+    } 
+    
+    function showUpvotes(usersId) {
+        var userToken = localStorage.getItem('token');
+        let options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Token '+ userToken
+            }
+        }
+        for (let id of usersId) {
+            fetch(`${apiUrl}/user?id=${id}`, options)
+                    .then(response => response.json())
+                    .then(json => {
+                        // add each user onto the modal window
+                        let templateUser = document.getElementsByClassName('upvote-users')[0];
+                        let user = templateUser.cloneNode(true);
+                        user.textContent = json.username;
+                        templateUser.insertAdjacentElement('afterend', user);
+                        
+                        // remove the template user element
+                        if (templateUser.textContent == '') 
+                            templateUser.remove();
+                    });
+        }
+    }
+    
+    // shows the comments on the modal window
+    function showComments(commentsArray) {
+        // sort comments starting from the most recent comment
+        let sortedComments = commentsArray.sort(function(a, b){
+            return b.published-a.published
+        });
+       
+        for (let commentObj of sortedComments) {
+            // making each comment for the comment section
+            let templateComment = document.getElementsByClassName('comment-users')[0];
+            let commentContainer = templateComment.cloneNode(true);
+            let author = document.createElement('span');
+            author.textContent = commentObj.author;
+            author.className = 'comment-author'
+            let date = document.createElement('span');
+            date.textContent = ' ' + timeConverter(commentObj.published);
+            date.className = 'comment-date';
+            let comment = document.createElement('p');
+            comment.textContent = commentObj.comment;
+            
+            // appending comment onto the modal window
+            commentContainer.appendChild(author);
+            commentContainer.appendChild(date);
+            commentContainer.appendChild(comment);
+            templateComment.insertAdjacentElement('afterend', commentContainer);
+        }
+        // remove the template comment
+        document.getElementsByClassName('comment-users')[0].remove();
+    }
 }
 
 export default initApp;

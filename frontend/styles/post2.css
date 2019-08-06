@@ -2,6 +2,9 @@
 .post .content {
   width: 100%;
 }
+.post-date {
+  color: rgb(80,80,80);
+}
 
 .feed-comments {
   float: right;
@@ -31,7 +34,6 @@ p.post-description {
 }
 
 /*modal window*/
-
 .black-bg {
   position: fixed;
   width: 100%;
@@ -51,7 +53,9 @@ p.post-description {
   background-color: white;
   padding: 20px;
   width: 80%;
-  border-radius: 0.5rem;
+  height: 50%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #close-button {
@@ -65,3 +69,42 @@ p.post-description {
   text-decoration: none;
   cursor: pointer;
 }
+
+.grouped-users {
+  list-style-type: none;
+  display: flex;
+  flex-wrap: wrap; 
+  display: flex;
+  width: 100%;
+}
+
+.grouped-comments {
+  list-style-type: none;
+}
+
+.upvote-users {
+  flex: 1 0 40%; 
+  margin: 5px;
+}
+
+.comment-users {
+  border-bottom: 3px solid var(--reddit-grey);
+  padding: 10px;
+}
+
+.comment-users:last-child {
+  border-bottom: none;
+}
+
+.comment-author {
+  color: var(--reddit-blue);
+}
+
+.comment-date {
+  color: rgb(80,80,80);
+}
+
+.title {
+  text-align: center;
+}
+
