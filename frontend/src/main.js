@@ -412,7 +412,7 @@ function initApp(apiUrl) {
         document.getElementById('sign-up').style.display = 'none';
     }
     
-    // LOGOUT 
+    // LOGOUT - log the user out
     logout.onclick = () => {
         localStorage.clear(); 
         location.reload();
@@ -423,6 +423,8 @@ function initApp(apiUrl) {
     }                
     
     // FEED INTERFACE AND PAGE REMODELLING (WHEN USER LOGS IN/OUT)
+    
+    // renders the page according to whether or not a user is logged in 
     function checkUserLoggedIn() {
         // check if a token exists 
         if (localStorage.getItem('token') === null) {
@@ -467,6 +469,7 @@ function initApp(apiUrl) {
             .then(json => makeFeed(json))
     }
     
+    // generates the user's feed
     function makeFeed(json) {
         // make sure the user id is stored in local storage
         getUserId();
@@ -638,14 +641,16 @@ function initApp(apiUrl) {
         comments.appendChild(comment);
     } 
     
-    // get the list of user ids 
+    // extracts data of a particular post given a post id
     // performs feed functionalities via other functions executed
-    // (show upvotes/show comments/thumbs up)
+    // (show upvotes/show comment)
     function getPost(element, className) {
+        // get the user's token
         var userToken = localStorage.getItem('token');
+        
+        // extract the post id
         if (className === 'vote')
             var postId = element.parentNode.id;
-        // if our element is the number of comments
         else if (className === 'feed-comments') 
             var postId = element.parentNode.parentNode.id;
          
@@ -669,6 +674,7 @@ function initApp(apiUrl) {
             });
     } 
     
+    // adds the users who upvoted on a post to the upvotes modal window
     function showUpvotes(usersId) {
         var userToken = localStorage.getItem('token');
         let options = {
@@ -735,7 +741,6 @@ function initApp(apiUrl) {
             let thumbs = document.querySelectorAll('#thumbs-up');
             for (let thumb of thumbs) {
                 if (thumb.style.color != 'rgb(0, 121, 211)') {
-                    console.log(thumb.style.color);
                     upvotePost(e, thumb);
                 } else {
                     deleteVote(e, thumb);
@@ -744,6 +749,8 @@ function initApp(apiUrl) {
         })  
     } 
     
+    // allows the user to upvote on a post
+    // the thumb changes to blue when voted and the upvote count increases
     function upvotePost(e, thumb) {
         if (thumb === e.target) {
             var userToken = localStorage.getItem('token');
@@ -770,6 +777,9 @@ function initApp(apiUrl) {
         }
     }  
     
+    // allows the user to delete their upvote on a post
+    // the thumb changes to grey when the vote is deleted and the upvote
+    // count decreases
     function deleteVote(e, thumb) {
         if (thumb === e.target) {
             var userToken = localStorage.getItem('token');
