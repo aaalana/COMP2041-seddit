@@ -138,7 +138,7 @@ function initApp(apiUrl) {
     feedPara.textContent = 'Posted by @some_dude69';
     
     // other...
-    // images not added
+    // image element not added
     const feedDate = document.createElement('span');
     feedDate.textContent = '4/08/2019';
     feedDate.className = 'post-date'
@@ -268,6 +268,7 @@ function initApp(apiUrl) {
         fetch(`${apiUrl}/auth/login`, options)
             .then(response => response.json())
             .then(json => {
+                // perform basic login input validation
                 if (!username || !password) {
                     inputError.textContent = 'Missing Username/Password';
                 } else if (json.message == 'Invalid Username/Password') {
@@ -503,6 +504,7 @@ function initApp(apiUrl) {
             date.textContent = timeConverter(post.meta.published);
             date.className = 'post-date';
             let thumb = feedPost.childNodes[1].childNodes[3];
+            
             // change the thumbs to blue if the user has already upvoted
             // on the post
             if (localStorage.getItem('login') == 'true')
@@ -521,7 +523,7 @@ function initApp(apiUrl) {
             // add in the image only if it exists 
             if (post.image !== null) {
                 let image = new Image();
-                image.src = 'data:image/png;base64,' + post.thumbnail;
+                image.src = 'data:image/png;base64,' + post.image;
                 image.className = 'post-image';
                 
                 let container = document.createElement('div');
@@ -730,7 +732,7 @@ function initApp(apiUrl) {
         });
         if (commentsArray.length != 0) {
             for (let commentObj of sortedComments) {
-                // making each comment for the comment section
+                // making elements for each comment in the comment section
                 let templateComment = document.getElementsByClassName('comment-users')[0];
                 let commentContainer = templateComment.cloneNode(true);
                 let author = document.createElement('span');
@@ -956,22 +958,10 @@ function initApp(apiUrl) {
             return
         }
         
-        // if an image is uploaded - convert to base 64
-        let img = new Image();
-        let image = document.querySelector('input[type=file]').files[0];
-        var reader  = new FileReader();
-       
-        if (image) {
-           // convert to base64
-           reader.readAsDataURL(image);
-        }
-        reader.onloadend = function() {
-            let url = reader.result.split(',')[1];
-            //console.log(url);
-            localStorage.setItem('image',url);
-        }
+        // converts any uploaded images to base64
+        pngToBase64();
         
-        // get the base 64 url of the image
+        // get the base64 url of the image
         let url = localStorage.getItem('image');
         localStorage.removeItem('image');
       
@@ -1014,12 +1004,55 @@ function initApp(apiUrl) {
                     postError.textContent = json.message;
             });
     }
-   
+    
+    // converts the user's uploaded image to base64 when the user attempts 
+    // to publish the post
+    function pngToBase64() {
+        let img = new Image();
+        let image = document.querySelector('input[type=file]').files[0];
+        var reader  = new FileReader();
+        // if an image is uploaded - convert to base 64
+        if (image) {
+           // convert to base64
+           reader.readAsDataURL(image);
+        }
+        reader.onloadend = function() {
+            let url = reader.result.split(',')[1];
+            localStorage.setItem('image',url);
+        }
+    }
+    
     postBtn.onclick = () => {
         modalPost.style.visibility = 'visible';
     }
     
- 
+    // SHOW USER PROFILE
+    // make the modal window for the user's profile
+    const modalProfile = modalUpvotes.cloneNode(true);
+    //modalProfile.id = 'profile-screen';
+    modalProfile.getElementsByTagName("h1")[0].textContent = 'My Profile';
+    modalProfile.getElementsByTagName("ul")[0].remove();
+    document.getElementById('root').appendChild(modalProfile);
+    
+    // when the 'logged in as <username>' is clicked from the header
+    // the user's profile is shown
+    const profileUsername = document.createElement('p');
+    const profileNumPosts = document.createElement('p');
+    const profileNumUpvotes = document.createElement('p');
+    const profilePosts = document.createElement('p');
+    
+    //modalPost.firstChild.className = 'post-content'; 
+    loggedUser.onclick = () => {
+        modalProfile.style.visibility = 'visible';
+        //console.log("here");
+         //username, number of posts, number of upvotes across all posts. Get this information from (GET /user)
+    }
+    
+    let closeProfile = modalProfile.firstChild.firstChild;
+    closeProfile.onclick = () => {
+        modalProfile.style.visibility = 'hidden';
+    }
+    
 }
 
 export default initApp;

@@ -3,6 +3,10 @@
   color: var(--reddit-blue);
 }
 
+#logged-user:hover {
+  text-decoration: underline;
+}
+
 #logout {
   display: none;
 }
