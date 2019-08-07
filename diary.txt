@@ -5,4 +5,4 @@
 5/09/19     16:00   23:50   -Registration input validation bug fixed
                             -Level 1 completed
                             -Log out functionality added
-6/09/19     11:00   1:15    -Level 2 upvote done                       
+6/09/19     11:00   23:15    -Level 2 upvote done                       

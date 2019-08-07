@@ -33,6 +33,10 @@ p.post-description {
   text-overflow: ellipsis; 
 }
 
+#post-btn {
+  visibility: hidden;
+}
+
 #thumbs-up {
  color: rgb(80,80,80);
  float: right;
@@ -95,6 +99,10 @@ p.post-description {
 .upvote-users {
   flex: 1 0 40%; 
   margin: 5px;
+}
+
+#empty-message {
+  text-align: center;
 }
 
 .comment-users {

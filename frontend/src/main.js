@@ -109,7 +109,8 @@ function initApp(apiUrl) {
     const postBtn = document.createElement('button');
     postBtn.className = 'button button-secondary';
     postBtn.textContent = 'Post';
- 
+    postBtn.id = 'post-btn';
+    
     const feedLi = document.createElement('li');
     feedLi.className = 'post';
     const postAttribute = document.createAttribute('data-id-post');
@@ -452,6 +453,8 @@ function initApp(apiUrl) {
                         logout.style.display = 'inline-block';
                         headerButtonL.style.display = 'none';
                         headerButtonS.style.display = 'none';
+                      
+                        document.getElementById('post-btn').style.visibility = 'visible';
                         let thumbs = document.querySelectorAll('#thumbs-up');
                         for (let thumb of thumbs)
                             thumb.style.visibility = 'visible';
@@ -474,6 +477,7 @@ function initApp(apiUrl) {
         // make sure the user id is stored in local storage
         getUserId();
         let userId = localStorage.getItem('userId');
+        
         
         // sorting posts from most recent to least
         let postData = json.posts;
@@ -501,15 +505,19 @@ function initApp(apiUrl) {
             let thumb = feedPost.childNodes[1].childNodes[3];
             // change the thumbs to blue if the user has already upvoted
             // on the post
-            checkUserInUpvotes(post.id, userId, thumb);
+            if (localStorage.getItem('login') == 'true')
+                checkUserInUpvotes(post.id, userId, thumb);
            
             let description = feedPost.childNodes[1].childNodes[4];
             description.textContent = post.text;
             let comments = feedPost.childNodes[1].childNodes[5];
             comments.textContent = post.comments.length + ' comments';
             let subseddit = feedPost.childNodes[1].childNodes[6];
-            subseddit.textContent = post.meta.subseddit;
-            
+            if (post.meta.subseddit)
+                subseddit.textContent = 's/' + post.meta.subseddit;
+            else
+                subseddit.textContent = '';
+                
             // add in the image only if it exists 
             if (post.image !== null) {
                 let image = new Image();
@@ -536,7 +544,8 @@ function initApp(apiUrl) {
     // converts UNIX timestamps to date timestamps
     function timeConverter(UNIX_timestamp){
         let date = new Date(UNIX_timestamp * 1000);
-        let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        let months = ['Jan','Feb','Mar','Apr','May','Jun',
+                      'Jul', 'Aug', 'Sep','Oct','Nov','Dec'];
         let year = date.getFullYear();
         let month = months[date.getMonth()];
         let day = date.getDate();
@@ -565,6 +574,10 @@ function initApp(apiUrl) {
     voteTitle.textContent = 'Users who upvoted'
     voteTitle.className = 'title';
     
+    const message = document.createElement('p');
+    message.textContent = '';
+    message.id = 'empty-message';
+      
     const groupedUsers = document.createElement('ul');
     groupedUsers.className = 'grouped-users';
     
@@ -573,6 +586,7 @@ function initApp(apiUrl) {
     
     modalWindow.appendChild(closeUpvote);
     modalWindow.appendChild(voteTitle);
+    modalWindow.appendChild(message);
     groupedUsers.appendChild(upvoteUsers);
     modalWindow.appendChild(groupedUsers);
     modalUpvotes.appendChild(modalWindow);
@@ -582,9 +596,9 @@ function initApp(apiUrl) {
     const modalComments = modalUpvotes.cloneNode(true);
     modalComments.id = 'comments-screen';
     document.getElementById('root').appendChild( modalComments);
-    modalComments.getElementsByTagName("h1")[0].textContent = 'Comments';
-    modalComments.getElementsByTagName("li")[0].className = 'comment-users';
-    modalComments.getElementsByTagName("ul")[0].className = 'grouped-comments';
+    modalComments.getElementsByTagName('h1')[0].textContent = 'Comments';
+    modalComments.getElementsByTagName('li')[0].className = 'comment-users';
+    modalComments.getElementsByTagName('ul')[0].className = 'grouped-comments';
   
     // functions for when the user is logged in
     
@@ -620,6 +634,7 @@ function initApp(apiUrl) {
         modalUpvotes.style.visibility = 'hidden';
         let users = document.getElementsByClassName('grouped-users')[0];
         users.innerText = '';
+        document.getElementById('empty-message').textContent = '';
         
         // remake the template user
         const upvoteUsers = document.createElement('li');
@@ -685,21 +700,25 @@ function initApp(apiUrl) {
             }
         }
         
-        // search users by id
-        for (let id of usersId) {
-            fetch(`${apiUrl}/user?id=${id}`, options)
-                    .then(response => response.json())
-                    .then(json => {
-                        // add each user onto the modal window
-                        let templateUser = document.getElementsByClassName('upvote-users')[0];
-                        let user = templateUser.cloneNode(true);
-                        user.textContent = json.username;
-                        templateUser.insertAdjacentElement('afterend', user);
-                        
-                        // remove the template user element
-                        if (templateUser.textContent == '') 
-                            templateUser.remove();
-                    });
+        if (usersId.length != 0) {
+            // search users by id
+            for (let id of usersId) {
+                fetch(`${apiUrl}/user?id=${id}`, options)
+                        .then(response => response.json())
+                        .then(json => {
+                            // add each user onto the modal window
+                            let templateUser = document.getElementsByClassName('upvote-users')[0];
+                            let user = templateUser.cloneNode(true);
+                            user.textContent = json.username;
+                            templateUser.insertAdjacentElement('afterend', user);
+                            
+                            // remove the template user element
+                            if (templateUser.textContent == '') 
+                                templateUser.remove();
+                        });
+            }
+        } else {
+             message.textContent = 'No one has upvoted this post.';
         }
     }
     
@@ -709,26 +728,31 @@ function initApp(apiUrl) {
         let sortedComments = commentsArray.sort(function(a, b){
             return b.published-a.published
         });
-       
-        for (let commentObj of sortedComments) {
-            // making each comment for the comment section
-            let templateComment = document.getElementsByClassName('comment-users')[0];
-            let commentContainer = templateComment.cloneNode(true);
-            let author = document.createElement('span');
-            author.textContent = commentObj.author;
-            author.className = 'comment-author'
-            let date = document.createElement('span');
-            date.textContent = ' ' + timeConverter(commentObj.published);
-            date.className = 'comment-date';
-            let comment = document.createElement('p');
-            comment.textContent = commentObj.comment;
-            
-            // appending comment onto the modal window
-            commentContainer.appendChild(author);
-            commentContainer.appendChild(date);
-            commentContainer.appendChild(comment);
-            templateComment.insertAdjacentElement('afterend', commentContainer);
+        if (commentsArray.length != 0) {
+            for (let commentObj of sortedComments) {
+                // making each comment for the comment section
+                let templateComment = document.getElementsByClassName('comment-users')[0];
+                let commentContainer = templateComment.cloneNode(true);
+                let author = document.createElement('span');
+                author.textContent = commentObj.author;
+                author.className = 'comment-author'
+                let date = document.createElement('span');
+                date.textContent = ' ' + timeConverter(commentObj.published);
+                date.className = 'comment-date';
+                let comment = document.createElement('p');
+                comment.textContent = commentObj.comment;
+                
+                // appending comment onto the modal window
+                commentContainer.appendChild(author);
+                commentContainer.appendChild(date);
+                commentContainer.appendChild(comment);
+                templateComment.insertAdjacentElement('afterend', commentContainer);
+            }
+        } else {
+            let message = modalComments.getElementsByTagName('p')[0]
+            message.textContent = 'No one has commented on this post';
         }
+        
         // remove the template comment
         document.getElementsByClassName('comment-users')[0].remove();
     }
@@ -926,6 +950,12 @@ function initApp(apiUrl) {
         let text = document.getElementById('post-description').value;
         let subseddit = document.getElementById('post-subseddit').value;
      
+        // input validation 
+        if (!title || !text) {
+            postError.textContent = 'Title/Description missing';
+            return
+        }
+        
         // if an image is uploaded - convert to base 64
         let img = new Image();
         let image = document.querySelector('input[type=file]').files[0];
@@ -937,20 +967,31 @@ function initApp(apiUrl) {
         }
         reader.onloadend = function() {
             let url = reader.result.split(',')[1];
-            console.log(url);
+            //console.log(url);
             localStorage.setItem('image',url);
         }
         
         // get the base 64 url of the image
         let url = localStorage.getItem('image');
-        
+        localStorage.removeItem('image');
+      
         // continue with publishing the user's post
-        let payload = {
-            "title": `${title}`,
-            "text": `${text}`,
-            "subseddit": `${subseddit}`,
-            "image": `${url}`
-        }   
+        // if an image is not provided, don't put it in the payload
+        let payload = undefined;
+        if (url != null) {
+            payload = {
+                "title": `${title}`,
+                "text": `${text}`,
+                "subseddit": `${subseddit}`,
+                "image": `${url}`
+            } 
+        } else {
+           payload = {
+                "title": `${title}`,
+                "text": `${text}`,
+                "subseddit": `${subseddit}`
+            } 
+        } 
         
         let postOptions = {
             method: 'POST',
@@ -964,10 +1005,16 @@ function initApp(apiUrl) {
         fetch(`${apiUrl}/post/`, postOptions)
             .then(response => response.json())
             .then(json => {
-                console.log(json);
+                // close the window upon successful publishing
+                // and reload the page
+                if (!json.message) {
+                    modalPost.style.visibility = 'hidden';
+                    location.reload();
+                } else 
+                    postError.textContent = json.message;
             });
     }
-  
+   
     postBtn.onclick = () => {
         modalPost.style.visibility = 'visible';
     }
