@@ -155,7 +155,7 @@ function loadVotesComments(apiUrl) {
                 'Authorization': 'Token '+ userToken
             }
         }
-      
+       
         if (usersId.length != 0) {
             // search users by id
             for (let id of usersId) {
@@ -174,7 +174,8 @@ function loadVotesComments(apiUrl) {
                         });
             }
         } else {
-             let message = document.getElementById('empty-message');
+             let modalUpvotes = document.getElementById('upvotes-screen');
+             let message = modalUpvotes.getElementsByTagName('p')[0];
              message.textContent = 'No one has upvoted this post.';
         }
     }

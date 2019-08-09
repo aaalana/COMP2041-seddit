@@ -16,4 +16,11 @@
                             -fixed bugs with post functionality 
                              (image url loading only after a post has 
                               been published)
-                            -finished splitting code into files         
+                            -finished splitting code into individual 
+                             files    
+9/09/19     12:30   23:59   -completed rendering of the user's profile 
+                            -completed infinite scroll on user's feed
+                             (not implemented on public feed since only
+                              a max of 20 posts are rendered)  
+                            -fixed user's profile bug where images 
+                             would not show up correctly in user's posts                         

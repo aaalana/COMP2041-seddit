@@ -8,7 +8,8 @@
 import {header} from './header.js';
 import {makeLoginForm, loginFunctionality} from './login.js';
 import {makeSignUpForm, signUpFunctionality} from './signUp.js';
-import {createFeedTemplate, 
+import {infiniteScroll,
+        createFeedTemplate, 
         fetchPublicFeed, 
         timeConverter, 
         makeFeed,
@@ -45,6 +46,15 @@ function initApp(apiUrl) {
     let logout = document.getElementById('logout');
     let loggedUser = document.getElementById('logged-user');
     
+    // PAGE REMODELLING (WHEN USER LOGS IN/OUT)
+    
+    // Logged in users can: see profile, has a personal feed, can upvote,
+    // comment, log out, see upvotes/comments, see the number of 
+    // comments/upvotes
+    
+    // Users that are not logged in can: log in or sign up, see a public
+    // feed, see the number of comments/upvotes
+    
     // clear local storage, feed, 'logged as <user>' and logout button
     // add the login and sign up button to the header
     logout.onclick = () => {
@@ -55,16 +65,7 @@ function initApp(apiUrl) {
         loginBtn.style.display = 'inline-block';
         signBtn.style.display = 'inline-block';
         loggedUser.textContent = '';
-    }               
-    
-    // PAGE REMODELLING (WHEN USER LOGS IN/OUT)
-    
-    // Logged in users can: see profile, has a personal feed, can upvote,
-    // comment, log out, see upvotes/comments, see the number of 
-    // comments/upvotes
-    
-    // Users that are not logged in can: log in or sign up, see a public
-    // feed, see the number of comments/upvotes
+    }    
     
     // renders the page according to whether or not a user is logged in 
     function checkUserLoggedIn() {
@@ -73,7 +74,7 @@ function initApp(apiUrl) {
             fetchPublicFeed(apiUrl);
             localStorage.setItem('login', false);
         } else {
-            var userToken = localStorage.getItem('token');
+            let userToken = localStorage.getItem('token');
             let optionsUserFeed = {
                 method: 'GET',
                 headers: {
@@ -81,6 +82,7 @@ function initApp(apiUrl) {
 	                'Authorization': 'Token '+ userToken
                 }
             }
+            
             fetch(`${apiUrl}/user/feed`, optionsUserFeed)
                 .then(response => response.json())
                 .then(json => {
@@ -92,24 +94,25 @@ function initApp(apiUrl) {
                         fetchPublicFeed(apiUrl);
                     // loads the website for a logged in user
                     } else {
+                        // show the username that has been logged in
                         let username = localStorage.getItem('user');
-                        
                         loggedUser.textContent = `Logged in as ${username}`;
-                        
                         // show the logout button
                         logout.style.display = 'inline-block';
-                        
+                        // hide the login and sign up button
                         let loginBtn = document.getElementById('login-button');
                         let signBtn = document.getElementById('sign-up-btn');
                         loginBtn.style.display = 'none';
                         signBtn.style.display = 'none';
-                      
+                        // show the post button
                         document.getElementById('post-btn').style.visibility = 'visible';
-                        
+                        // show the thumbs up on each post
                         let thumbs = document.querySelectorAll('#thumbs-up');
                         for (let thumb of thumbs)
                             thumb.style.visibility = 'visible';
+                        // generate the user's personal feed
                         makeFeed(json, apiUrl);
+                        //record that the user is logged in
                         localStorage.setItem('login', true);
                     }
                 });
@@ -135,6 +138,15 @@ function initApp(apiUrl) {
     // allow the user to see their profile
     makeProfileWindow();
     showProfile(apiUrl);
+    
+    // infinite scroll of feed
+    if (localStorage.getItem('login') === 'true') 
+        infiniteScroll(apiUrl);
+    
+    // scroll to the top of the page when the page refreshes
+    window.onbeforeunload = function() {
+        window.scrollTo(0, 0);
+    }
 }
 
 export default initApp;

@@ -124,11 +124,8 @@ function makeFeed(json, apiUrl) {
     }
     
     // sorting posts from most recent to least
-    let postData = json.posts;
-    let sortedPosts = postData.sort(function(a, b){
-        return b.meta.published-a.meta.published
-    });
-    
+    let sortedPosts = sortPosts(json.posts);
+
     // adding posts to the feed
     let feedLi = document.getElementsByClassName('post')[0];
     for(let post of sortedPosts) {
@@ -142,6 +139,14 @@ function makeFeed(json, apiUrl) {
     }        
 }
 
+// sorts posts from most recent to least
+function sortPosts(posts) {
+    let sortedPosts = posts.sort(function(a, b) {
+        return b.meta.published-a.meta.published
+    });
+    return sortedPosts;
+}
+
 // clones the template post element and modifies the text of 
 // the post
 function loadPost(post, userId, apiUrl) {
@@ -152,7 +157,7 @@ function loadPost(post, userId, apiUrl) {
     let title = feedPost.childNodes[1].childNodes[0];
     title.textContent = post.title;
     let author = feedPost.childNodes[1].childNodes[1];
-    author.textContent = "Posted by " + post.meta.author;
+    author.textContent = 'Posted by ' + post.meta.author;
     let upvotes = feedPost.firstChild;
     upvotes.textContent = post.meta.upvotes.length;
     let date = feedPost.childNodes[1].childNodes[2];
@@ -210,4 +215,49 @@ function timeConverter(UNIX_timestamp){
     return time;
 }
 
-export {loadPost, createFeedTemplate, fetchPublicFeed, timeConverter, makeFeed, togglePost};
+// controls when more posts are loaded into the user's feed
+// allows for infinite scroll
+function infiniteScroll(apiUrl) {
+    let scroll = document.createElement('div'); 
+    let root = document.getElementById('root');
+    let percentage;
+    let start = 0;
+    window.addEventListener('scroll', function() {
+        // calculates an approximate percentage of how much the user has 
+        // scrolled through the page
+        let scrolledHeight = pageYOffset;
+        let lastPost = document.getElementById('feed').lastChild;
+        let lastPostOffset = lastPost.offsetTop + lastPost.clientHeight;
+        let scrollOffset = pageYOffset + window.innerHeight;
+      
+        // load more posts
+        // adjust where the posts start loading from
+        if (scrollOffset > lastPostOffset - 10) {
+            start = start + 10;
+            loadMorePosts(apiUrl, start)
+        }
+    });
+}
+
+// loads more posts into the user's feed 
+function loadMorePosts(apiUrl, start) {
+    let userToken = localStorage.getItem('token');
+    let optionsUserFeed = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token '+ userToken
+        }
+    }
+    
+    fetch(`${apiUrl}/user/feed?p=${start}`, optionsUserFeed)
+        .then(response => response.json())
+        .then(json => {
+            // show the thumbs up on each post
+            let thumbs = document.querySelectorAll('#thumbs-up');
+            for (let thumb of thumbs)
+                thumb.style.visibility = 'visible';
+            makeFeed(json, apiUrl);
+        });
+}
+export {infiniteScroll, loadPost, createFeedTemplate, fetchPublicFeed, timeConverter, makeFeed, togglePost};

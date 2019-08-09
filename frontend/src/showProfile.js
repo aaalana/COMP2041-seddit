@@ -78,7 +78,9 @@ function getPostInfo(apiUrl, postIds) {
         userId = localStorage.getItem('userId');
     }
     
-    for(let postId of postIds) {
+    let sortPostIds = postIds.sort(function(a,b) { return b-a });
+  
+    for(let postId of sortPostIds) {
         fetch(`${apiUrl}/post?id=${postId}`, postOptions)
             .then(response => response.json())
             .then(json => {
@@ -93,10 +95,14 @@ function showUserPosts(post, userId, apiUrl) {
     let feedPost = document.getElementsByClassName('post')[0].cloneNode(true);
     feedPost.id = post.id;
     
+    // remove any images that were previously attached on the template post
+    if (feedPost.lastChild.className == 'post-container') 
+        feedPost.getElementsByClassName('post-container')[0].remove();
+   
     let title = feedPost.childNodes[1].childNodes[0];
     title.textContent = post.title;
     let author = feedPost.childNodes[1].childNodes[1];
-    author.textContent = "Posted by " + post.meta.author;
+    author.textContent = 'Posted by ' + post.meta.author;
     let upvotes = feedPost.firstChild;
     upvotes.textContent = post.meta.upvotes.length;
     let date = feedPost.childNodes[1].childNodes[2];
