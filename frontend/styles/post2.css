@@ -18,7 +18,6 @@
 
 .post-container {
   width: 200px;
-  height: 200px;
 }
 
 .post-image {
@@ -55,21 +54,24 @@ p.post-description {
   top: 0px;
   background-color: rgba(0, 0, 0, 0.5);
   visibility: hidden;
-  transform: scale(1.1);
-  transition: visibility 0s linear 0.25s, opacity 0.25s 0s, transform 0.25s;
 }
 
-.upvote-content {
+.modal-content {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: white;
-  padding: 20px;
+  padding: 80px;
   width: 80%;
   height: 50%;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.modal-content label {
+ font-weight: bold;
+ font-size: 20px;
 }
 
 #close-button {
@@ -161,6 +163,12 @@ p.post-description {
   height: 70%;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.post-input-error {
+  color: red;
+  font-size: 14px;
+  font-weight: normal;
 }
 
 .publish-btn {
