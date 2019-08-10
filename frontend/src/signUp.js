@@ -89,7 +89,7 @@ function signUpFunctionality(apiUrl) {
             },
             body: JSON.stringify(payload)
         }
-        if (signValidate(username, password, email, name) == true) {
+        if (signValidate(username, password, email, name, inputError) == true) {
             fetch(`${apiUrl}/auth/signup`, options)
                 .then(response => response.json())
                 .then(json => {
@@ -100,47 +100,13 @@ function signUpFunctionality(apiUrl) {
                         localStorage.setItem('token', `${json.token}`);
                         localStorage.setItem('user', `${username}`);
                         localStorage.setItem('login', true);
+                        localStorage.setItem('password', `${password}`);
                         document.getElementById('signup-form').submit();
                     }
                 }); 
         }
     }
     
-    // basic input validation 
-            
-    // 'require' attribute is already in sign up fields so that 
-    // usernames and passwords must contain at least one character
-    
-    function signValidate(username, password, email, name) {
-        // check if inputs are valid
-        const legalChars = /\w/;
-        const legalName = /(^[A-Z]{1}[a-z]+$|^[A-Z]{1}[a-z]+-[A-Z]{1}[a-z]+$)/;
-        const legalEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+/;
-       
-        // input fields must contain at least one character
-        if (!username || !password || !email || !name) {
-            inputError.textContent = 'Missing Username/Password/Email/Name';
-            return false;
-        // username/password must contain letters, numbers or _ only
-        } else if (!username.match(legalChars) || 
-                   !password.match(legalChars)) {
-            inputError.textContent = 'Error: Invalid username/password';
-	        return false;
-        // emails must be in a valid form e.g. email@something.com
-        } else if (!email.match(legalEmail)) {
-            inputError.textContent = 'Error: Invalid email';
-	        return false;
-	    // names must have at least two letters and start with a capital
-	    // letter
-	    // one '-' is allowed in between letters
-	    // e.g. Mary-Jane is a valid name
-        } else if (!name.match(legalName)) {
-	        inputError.textContent = 'Error: Invalid name';
-	        return false;
-	    }
-        return true;
-    }
-      
     // close the sign up form when the close button is clicked
     let signClose = document.getElementsByClassName('sign-up-btn')[1];
     let signForm = document.getElementById('signup-form');
@@ -151,6 +117,41 @@ function signUpFunctionality(apiUrl) {
     }
 }
 
+// performs basic input validation on user's details
+// 'require' attribute is already in sign up fields so that 
+// usernames and passwords must contain at least one character
+function signValidate(username, password, email, name, inputError) {
+    // check if inputs are valid
+    const legalChars = /\w/;
+    const legalName = /(^[A-Z]{1}[a-z]+$|^[A-Z]{1}[a-z]+-[A-Z]{1}[a-z]+$)/;
+    const legalEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+/;
+   
+    // input fields must contain at least one character
+    if (!username || !password || !email || !name) {
+        inputError.textContent = 'Missing Username/Password/Email/Name';
+        return false;
+    // username must contain letters, numbers or _ only
+    } else if (!username.match(legalChars)) {
+        inputError.textContent = 'Error: Invalid username';
+        return false;
+    // password must contain letters, numbers or _ only
+    } else if (!password.match(legalChars)) {
+        inputError.textContent = 'Error: Invalid password';
+        return false;
+    // emails must be in a valid form e.g. email@something.com
+    } else if (!email.match(legalEmail)) {
+        inputError.textContent = 'Error: Invalid email';
+        return false;
+    // names must have at least two letters and start with a capital
+    // letter
+    // one '-' is allowed in between letters
+    // e.g. Mary-Jane is a valid name
+    } else if (!name.match(legalName)) {
+        inputError.textContent = 'Error: Invalid name';
+        return false;
+    }
+    return true;
+}
 var signUpForm = document.getElementById('sign-up');
 
-export {makeSignUpForm, signUpFunctionality, signUpForm};
+export {signValidate, makeSignUpForm, signUpFunctionality, signUpForm};

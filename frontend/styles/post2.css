@@ -29,7 +29,8 @@ p.post-description {
   white-space: nowrap; 
   width: 600px;
   overflow: hidden;
-  text-overflow: ellipsis; 
+  text-overflow: ellipsis;
+  z-index: 1;
 }
 
 #post-btn {
@@ -54,6 +55,7 @@ p.post-description {
   top: 0px;
   background-color: rgba(0, 0, 0, 0.5);
   visibility: hidden;
+  z-index: 2;
 }
 
 .modal-content {
@@ -184,4 +186,25 @@ p.post-description {
 
 .publish-btn:hover {
   opacity: 1;
+}
+
+/* profile */
+#profile-btn-div {
+  text-align: center;
+  
+}
+
+#following-btn, #followed-btn {
+  margin-right: 20px;
+  margin-bottom: 20px;
+}
+
+#profile-screen input {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+#update-btn {
+  margin-top: 20px;
+  margin-right: 20px;
 }

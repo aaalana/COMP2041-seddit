@@ -25,6 +25,20 @@ function createFeedTemplate() {
     postBtn.textContent = 'Post';
     postBtn.id = 'post-btn';
     
+    const feedLi = makePostTemplate();
+    
+    // APPENDING ELEMENTS TO HEADER
+    feedHeader.appendChild(popularPosts);
+    feedHeader.appendChild(postBtn);
+    feedUl.appendChild(feedHeader);
+    feedUl.appendChild(feedLi);
+    main.appendChild(feedUl);
+   
+    // APPENDING MAIN TO DOCUMENT
+    document.getElementById('root').appendChild(main);
+}
+
+function makePostTemplate() {
     const feedLi = document.createElement('li');
     feedLi.className = 'post';
     const postAttribute = document.createAttribute('data-id-post');
@@ -66,25 +80,16 @@ function createFeedTemplate() {
     feedSubseddit.className = 'feed-subseddit';
     
     // APPENDING ELEMENTS TO HEADER
-    feedHeader.appendChild(popularPosts);
-    feedHeader.appendChild(postBtn);
-    feedUl.appendChild(feedHeader);
     feedLi.appendChild(vote);
     content.appendChild(feedTitle);
     content.appendChild(feedPara);
-    
     content.appendChild(feedDate);
     content.appendChild(feedThumbsUp);
     content.appendChild(feedDescript);
     content.appendChild(feedComments);
     content.appendChild(feedSubseddit);
-    
     feedLi.appendChild(content);
-    feedUl.appendChild(feedLi);
-    main.appendChild(feedUl);
-   
-    // APPENDING MAIN TO DOCUMENT
-    document.getElementById('root').appendChild(main);
+    return feedLi;
 }
 
 // allow a description of a post to expand/collapsed when clicked on
@@ -128,6 +133,7 @@ function makeFeed(json, apiUrl) {
 
     // adding posts to the feed
     let feedLi = document.getElementsByClassName('post')[0];
+    
     for(let post of sortedPosts) {
         loadPost(post, userId, apiUrl);
     }
@@ -136,7 +142,7 @@ function makeFeed(json, apiUrl) {
    
     if (title.textContent == '') {
         feedLi.remove();  
-    }        
+    }       
 }
 
 // sorts posts from most recent to least
@@ -260,4 +266,4 @@ function loadMorePosts(apiUrl, start) {
             makeFeed(json, apiUrl);
         });
 }
-export {infiniteScroll, loadPost, createFeedTemplate, fetchPublicFeed, timeConverter, makeFeed, togglePost};
+export {makePostTemplate, infiniteScroll, loadPost, createFeedTemplate, fetchPublicFeed, timeConverter, makeFeed, togglePost};

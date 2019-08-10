@@ -69,7 +69,7 @@ function postForm() {
     document.getElementById('root').appendChild(modalPost);
 }
 
-// functionality for when the user creates a post
+// allows the user to create a post
 function makePost(apiUrl) {   
     let modalPost = document.getElementById('post-screen');
     let closePost = modalPost.firstChild.firstChild;
@@ -145,6 +145,8 @@ function publish(apiUrl, payload) {
             if (!json.message) {
                 modalPost.style.visibility = 'hidden';
                 location.reload();
+            // give an error message if there's an problem with the
+            // user's post
             } else 
                 postError.textContent = json.message;
         });

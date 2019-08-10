@@ -19,7 +19,12 @@ import {makeUpvotesWindow,
         loadVotesComments} from './showVotesComments.js';
 import {thumbsButtonFunctionality} from './upvote.js';
 import {postForm, makePost} from './createPost.js';
-import {makeProfileWindow, showProfile} from './showProfile.js';
+import {makeFollowingWindow,
+        makeFollowedWindow,
+        makeProfileWindow, 
+        showProfile} from './showProfile.js';
+import comment from './comment.js';
+import {updateProfile} from './updateProfile.js';
 
 // your app must take an apiUrl as an argument --
 // this will allow us to verify your apps behaviour with 
@@ -40,12 +45,6 @@ function initApp(apiUrl) {
     // make the feed 
     createFeedTemplate();
     
-    // LOGOUT - log the user out
-    let loginBtn = document.getElementById('login-button');
-    let signBtn = document.getElementById('sign-up-btn');
-    let logout = document.getElementById('logout');
-    let loggedUser = document.getElementById('logged-user');
-    
     // PAGE REMODELLING (WHEN USER LOGS IN/OUT)
     
     // Logged in users can: see profile, has a personal feed, can upvote,
@@ -57,6 +56,12 @@ function initApp(apiUrl) {
     
     // clear local storage, feed, 'logged as <user>' and logout button
     // add the login and sign up button to the header
+   
+    // LOGOUT - log the user out
+    let loginBtn = document.getElementById('login-button');
+    let signBtn = document.getElementById('sign-up-btn');
+    let logout = document.getElementById('logout');
+    let loggedUser = document.getElementById('logged-user');
     logout.onclick = () => {
         localStorage.clear(); 
         document.getElementsByTagName('Ul')[0].innerText = ''; 
@@ -135,9 +140,12 @@ function initApp(apiUrl) {
     postForm();
     makePost(apiUrl);
     
-    // allow the user to see their profile
+    // allow the user to see and edit their profile
     makeProfileWindow();
+    makeFollowingWindow();
+    makeFollowedWindow();
     showProfile(apiUrl);
+    updateProfile(apiUrl);
     
     // infinite scroll of feed
     if (localStorage.getItem('login') === 'true') 
@@ -147,6 +155,10 @@ function initApp(apiUrl) {
     window.onbeforeunload = function() {
         window.scrollTo(0, 0);
     }
+    
+    // allow users to comment
+    comment(apiUrl);
+    
 }
 
 export default initApp;

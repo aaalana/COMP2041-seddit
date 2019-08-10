@@ -54,3 +54,23 @@
 .form-container .login-btn:hover, .sign-up-btn:hover {
   opacity: 1;
 }
+
+/*comment input section*/
+#comment-form {
+  padding-left: 50px;
+  padding-right: 80px;
+  padding-top: 20px;
+}
+
+#comment-input {
+  resize: none;
+  height: 100px;
+}
+
+#comment-btns {
+  text-align: right;
+}
+
+#comment-btn {
+  margin-right: 20px;
+}

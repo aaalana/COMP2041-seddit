@@ -101,6 +101,7 @@ function loginFunctionality(apiUrl) {
                     localStorage.setItem('token', `${json.token}`);
                     localStorage.setItem('user', `${username}`);
                     localStorage.setItem('login', true);
+                    localStorage.setItem('password', `${password}`);
                     document.getElementById('login-form').submit();
                 }
             });
