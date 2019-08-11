@@ -1,6 +1,7 @@
 import {getUser, checkUserInUpvotes} from './upvote.js';
-import {makePostTemplate, timeConverter} from './feed.js';
+import {loadPost, makePostTemplate, timeConverter} from './feed.js';
 import {editProfileMode} from './updateProfile.js';
+import {loadUsers, userIdToUsername} from './showVotesComments.js';
 
 function makeProfileWindow() {
     // SHOW USER PROFILE
@@ -19,6 +20,8 @@ function makeProfileWindow() {
     usernameEmail.textContent = 'Email Address';
     const usernamePassword = document.createElement('label');
     usernamePassword.textContent = 'Password';
+    const numFollowed = document.createElement('label');
+    numFollowed.textContent = 'Number of Followers';
     const numPosts = document.createElement('label');
     numPosts.textContent = 'Number of Posts';
     const numUpvotes = document.createElement('label');
@@ -42,12 +45,6 @@ function makeProfileWindow() {
     followingBtn.textContent = 'FOLLOWING';
     followingBtn.className = 'button button-secondary';
     followingBtn.id = 'following-btn';
-    
-    const followedBtn = document.createElement('button');
-    followedBtn.type = 'button';
-    followedBtn.textContent = 'FOLLOWED';
-    followedBtn.className = 'button button-secondary';
-    followedBtn.id = 'followed-btn';
    
     const editBtn = document.createElement('button');
     editBtn.type = 'button';
@@ -55,12 +52,12 @@ function makeProfileWindow() {
     editBtn.className = 'button button-primary';
     editBtn.id = 'edit-btn';
    
+    const profileFollowed = document.createElement('p');
+    profileFollowed.className = 'profile-followers';
     const profileNumPosts = document.createElement('p');
     profileNumPosts.className = 'profile-num-posts';
-    const message = document.createElement('p');
-    message.id = 'empty-message-profile';
-    const profilePosts = document.createElement('ul');
-    profilePosts.className = 'profile-posts';
+    const profileUpvotes = document.createElement('p');
+    profileUpvotes.id = 'profile-upvotes';
     
     // elements used when updating profile
     let editName = document.createElement('input');
@@ -96,7 +93,6 @@ function makeProfileWindow() {
     
     // appending elements
     btnDiv.appendChild(followingBtn);
-    btnDiv.appendChild(followedBtn);
     btnDiv.appendChild(editBtn);
     modalProfile.firstChild.appendChild(btnDiv);
     modalProfile.firstChild.appendChild(usernameTitle);
@@ -107,11 +103,12 @@ function makeProfileWindow() {
     modalProfile.firstChild.appendChild(profileEmail);
     modalProfile.firstChild.appendChild(usernamePassword);
     modalProfile.firstChild.appendChild(profilePassword);
+    modalProfile.firstChild.appendChild(numFollowed);
+    modalProfile.firstChild.appendChild(profileFollowed);
     modalProfile.firstChild.appendChild(numPosts);
     modalProfile.firstChild.appendChild(profileNumPosts);
     modalProfile.firstChild.appendChild(numUpvotes);
-    modalProfile.firstChild.appendChild(message);
-    modalProfile.firstChild.appendChild(profilePosts);
+    modalProfile.firstChild.appendChild(profileUpvotes);
    
     profileName.insertAdjacentElement('afterend', editName);
     profileEmail.insertAdjacentElement('afterend', editEmail);
@@ -134,32 +131,16 @@ function makeFollowingWindow() {
     title.textContent = 'Following';
     const message = document.createElement('p');
     message.id = 'empty-message-following';
-    message.textContent = 'You are following no one';
+    message.textContent = 'You are following no one.';
+    message.style.display = 'block';
     title.parentNode.appendChild(message);
 
     profileFollowing.getElementsByTagName('li')[0].className = 'following-users';
     profileFollowing.getElementsByTagName('ul')[0].className = 'grouped-following';
 }
-
-// make the modal window to show who the user is followed by
-function makeFollowedWindow() {
-    const profileFollowed = document.getElementById('upvotes-screen')
-                                    .cloneNode(true);
-    profileFollowed.id = 'followed-screen';
-    document.getElementById('root').appendChild(profileFollowed);
-    
-    const title = profileFollowed.getElementsByTagName('h1')[0]
-    title.textContent = 'Followed';
-    const message = document.createElement('p');
-    message.id = 'empty-message-followed';
-    message.textContent = 'You are followed by no one';
-    title.parentNode.appendChild(message);
-    
-    profileFollowed.getElementsByTagName('li')[0].className = 'followed-users';
-    profileFollowed.getElementsByTagName('ul')[0].className = 'grouped-followed';
-}
-    
-// opens and closes the modal window for the user's profile    
+  
+// allows buttons on the user's profile to open and close modal windows
+// displays the user's profile  
 function showProfile(apiUrl) {
     // when the 'logged in as <username>' is clicked from the header
     // the user's profile is shown
@@ -168,18 +149,17 @@ function showProfile(apiUrl) {
     loggedUser.onclick = () => {
         modalProfile.style.visibility = 'visible';
         modalProfile.style.display = 'block';
-        getUser(apiUrl);
+        
+        // extract the user's information via localStorage
+        getUser(apiUrl, localStorage.getItem('user'));
         let json = JSON.parse(localStorage.getItem('userInfo'));
         
-        if (json.posts.length == 0) {
-            let message = document.getElementById('empty-message-profile');
-            message.textContent = `No upvotes can be shown because you 
-                                   have no posts.`;
-        } else {
-            getPostInfo(apiUrl, json.posts);
-        }
+        // add the total number of upvotes to profile
+        getPostInfo(apiUrl, json.posts, 'profile-upvotes', 'upvotes');
         
         // fill in the user's details
+        let numFollowers = document.getElementsByClassName('profile-followers')[0];
+        numFollowers.textContent = json.followed_num;
         let numPosts = document.getElementsByClassName('profile-num-posts')[0];
         numPosts.textContent = json.posts.length;
         let Uname = document.getElementsByClassName('userDetails')[0];
@@ -196,21 +176,70 @@ function showProfile(apiUrl) {
     closeProfile.onclick = () => {
         modalProfile.style.visibility = 'hidden';
         modalProfile.style.display = 'none';
-        // clear any posts before re-rendering into profile
-        document.getElementsByClassName('profile-posts')[0].innerText = '';
-        // clear any messages that were on the user's profile
-        document.getElementById('empty-message-profile').textContent = '';
     }
     
+    // When the edit profile button is clicked, the user can edit
+    // details by switching the profile mode to an editing mode
     let editBtn = document.getElementById('edit-btn');
     editBtn.onclick = () => {
-        editProfileMode() 
+        editProfileMode();
+    }
+    
+    // when the following button is clicked, a list of users followed
+    // is shown
+    let following = document.getElementById('following-btn');
+    let modalFollowing = document.getElementById('following-screen');
+    getUser(apiUrl, localStorage.getItem('user'));
+    following.onclick = () => {
+        showFollowing(apiUrl, 'open');
+    }
+    
+    // close the modal following window when the cross is clicked on
+    let closeFollowing = modalFollowing.getElementsByTagName('span')[0];
+    closeFollowing.onclick = () => {
+        showFollowing(apiUrl, 'close');
+    }
+}
+
+// function which controls the 'following' button found on user's profile
+// and user pages
+// it opens/closes a modal window contains a list of users that a certain  
+// user follows
+function showFollowing(apiUrl, option) {
+    let modalFollowing = document.getElementById('following-screen');
+    if (option == 'open') {
+        document.getElementById('root').appendChild(modalFollowing);
+        modalFollowing.style.visibility = 'visible';
+        // get a list of users that the user follows
+        let json = JSON.parse(localStorage.getItem('userInfo'));
+       
+        // load users onto the following modal window
+        let message = document.getElementById('empty-message-following');
+        if (json.following.length != 0) {
+            message.style.display = 'none';
+            loadUsers(json.following, 'following-users', apiUrl);
+        } else {
+            message.style.display = 'block';
+        }
+    } else {
+        modalFollowing.style.visibility = 'hidden';
+        
+        // clear out the list of users from the modal window
+        let users = document.getElementsByClassName('grouped-following')[0];
+        users.innerText = '';
+        
+        // remake the template user
+        const templateUser = document.createElement('li');
+        templateUser.className = 'following-users';
+        users.appendChild(templateUser);
     }
 }
 
 // gets a json object of the user's information
-// and passes it into a function that load the user's posts
-function getPostInfo(apiUrl, postIds) {
+// depending on the the option stated, 
+// it passes the object into a function that load the user's posts
+// or it total the number of upvotes a user has across all posts
+function getPostInfo(apiUrl, postIds, elementId, option) {
     // get the user's token
     var userToken = localStorage.getItem('token');
     
@@ -224,73 +253,33 @@ function getPostInfo(apiUrl, postIds) {
     
     let userId = '';
     if (localStorage.getItem('login') == 'true') {
-        getUser(apiUrl);
+        getUser(apiUrl,localStorage.getItem('user'));
         userId = localStorage.getItem('userId');
     }
     
+    // sort posts so when loaded, the most recent is shown
     let sortPostIds = postIds.sort(function(a,b) { return b-a });
-  
+    let total = 0;
+    
     for(let postId of sortPostIds) {
         fetch(`${apiUrl}/post?id=${postId}`, postOptions)
             .then(response => response.json())
             .then(json => {
-                showUserPosts(json, userId, apiUrl); 
+                // load the user's posts into a modal window
+                if (option == 'loadPost') {
+                    loadPost(json, userId, apiUrl, elementId); 
+                // calculate the total upvotes across all the user's posts
+                } else if (option == 'upvotes') {
+                    total += json.meta.upvotes.length;
+                    let upVotes = document.getElementById('profile-upvotes');
+                    upVotes.textContent = total;
+                }
             });
     }
 }
 
-// generates elements for the user's post and displays them on the 
-// user's profile
-function showUserPosts(post, userId, apiUrl) {
-    let feedPost = makePostTemplate().cloneNode(true);
-    feedPost.id = post.id;
-    
-    // remove any images that were previously attached on the template post
-    if (feedPost.lastChild.className == 'post-container') 
-        feedPost.getElementsByClassName('post-container')[0].remove();
-   
-    let title = feedPost.childNodes[1].childNodes[0];
-    title.textContent = post.title;
-    let author = feedPost.childNodes[1].childNodes[1];
-    author.textContent = 'Posted by ' + post.meta.author;
-    let upvotes = feedPost.firstChild;
-    upvotes.textContent = post.meta.upvotes.length;
-    let date = feedPost.childNodes[1].childNodes[2];
-    date.textContent = timeConverter(post.meta.published);
-    date.className = 'post-date';
-    let thumb = feedPost.childNodes[1].childNodes[3];
-    thumb.style.visibility = 'visible';
-    
-    // change the thumbs to blue if the user has already upvoted
-    // on the post
-    if (localStorage.getItem('login') == 'true')
-        checkUserInUpvotes(post.id, userId, thumb, apiUrl);
-   
-    let description = feedPost.childNodes[1].childNodes[4];
-    description.textContent = post.text;
-    let comments = feedPost.childNodes[1].childNodes[5];
-    comments.textContent = post.comments.length + ' comments';
-    let subseddit = feedPost.childNodes[1].childNodes[6];
-    if (post.meta.subseddit)
-        subseddit.textContent = 's/' + post.meta.subseddit;
-    else
-        subseddit.textContent = '';
-        
-    // add in the image only if it exists 
-    if (post.image !== null) {
-        let image = new Image();
-        image.src = 'data:image/png;base64,' + post.image;
-        image.className = 'post-image';
-        
-        let container = document.createElement('div');
-        container.className = 'post-container';
-      
-        container.appendChild(image);
-        feedPost.appendChild(container);
-    }
-    
-    let feedUl = document.getElementsByClassName('profile-posts')[0];
-    feedUl.appendChild(feedPost);
-}
-
-export {makeFollowingWindow, makeFollowedWindow, getPostInfo, makeProfileWindow, showProfile};
+export {makeFollowingWindow, 
+        getPostInfo, 
+        makeProfileWindow, 
+        showProfile,
+        showFollowing};

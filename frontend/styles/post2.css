@@ -88,7 +88,7 @@ p.post-description {
   cursor: pointer;
 }
 
-.grouped-users {
+.grouped-users, .grouped-following {
   list-style-type: none;
   display: flex;
   flex-wrap: wrap; 
@@ -100,7 +100,7 @@ p.post-description {
   list-style-type: none;
 }
 
-.upvote-users {
+.upvote-users, .following-users {
   flex: 1 0 40%; 
   margin: 5px;
 }
@@ -189,12 +189,19 @@ p.post-description {
 }
 
 /* profile */
-#profile-btn-div {
-  text-align: center;
-  
+#profile-screen .modal-content {
+  height: 70%;
 }
 
-#following-btn, #followed-btn {
+#empty-message-profile {
+  padding-bottom: 50px;
+}
+
+#profile-btn-div, #user-btn-div {
+  text-align: center;
+}
+
+#following-btn, #following-btn-2 {
   margin-right: 20px;
   margin-bottom: 20px;
 }
@@ -204,7 +211,15 @@ p.post-description {
   margin-bottom: 20px;
 }
 
+#profile-upvotes {
+  margin-bottom: 100px;
+}
+
 #update-btn {
   margin-top: 20px;
   margin-right: 20px;
+}
+
+#page-posts {
+  
 }

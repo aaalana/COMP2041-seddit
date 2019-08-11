@@ -17,14 +17,14 @@ import {infiniteScroll,
 import {makeUpvotesWindow,
         makeCommentsWindow, 
         loadVotesComments} from './showVotesComments.js';
-import {thumbsButtonFunctionality} from './upvote.js';
+import {getUser, thumbsButtonFunctionality} from './upvote.js';
 import {postForm, makePost} from './createPost.js';
 import {makeFollowingWindow,
-        makeFollowedWindow,
         makeProfileWindow, 
         showProfile} from './showProfile.js';
 import comment from './comment.js';
 import {updateProfile} from './updateProfile.js';
+import {makeUserPage, mainUserPage} from './userPage.js';
 
 // your app must take an apiUrl as an argument --
 // this will allow us to verify your apps behaviour with 
@@ -87,6 +87,8 @@ function initApp(apiUrl) {
 	                'Authorization': 'Token '+ userToken
                 }
             }
+            let username = localStorage.getItem('user');
+            getUser(apiUrl, username);
             
             fetch(`${apiUrl}/user/feed`, optionsUserFeed)
                 .then(response => response.json())
@@ -97,10 +99,12 @@ function initApp(apiUrl) {
                         localStorage.clear(); 
                         localStorage.setItem('login', false);
                         fetchPublicFeed(apiUrl);
+                        location.reload();
                     // loads the website for a logged in user
                     } else {
+                        //record that the user is logged in
+                        localStorage.setItem('login', true);
                         // show the username that has been logged in
-                        let username = localStorage.getItem('user');
                         loggedUser.textContent = `Logged in as ${username}`;
                         // show the logout button
                         logout.style.display = 'inline-block';
@@ -117,8 +121,6 @@ function initApp(apiUrl) {
                             thumb.style.visibility = 'visible';
                         // generate the user's personal feed
                         makeFeed(json, apiUrl);
-                        //record that the user is logged in
-                        localStorage.setItem('login', true);
                     }
                 });
         }  
@@ -143,7 +145,6 @@ function initApp(apiUrl) {
     // allow the user to see and edit their profile
     makeProfileWindow();
     makeFollowingWindow();
-    makeFollowedWindow();
     showProfile(apiUrl);
     updateProfile(apiUrl);
     
@@ -159,6 +160,9 @@ function initApp(apiUrl) {
     // allow users to comment
     comment(apiUrl);
     
+    // allows the user to open user pages
+    makeUserPage();
+    mainUserPage(apiUrl);
 }
 
 export default initApp;

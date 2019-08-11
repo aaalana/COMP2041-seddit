@@ -1,3 +1,5 @@
+import {fetchPublicFeed} from './feed.js';
+
 // USER UPVOTE
 
 // allows the user to upvote posts and delete their votes when the thumbs
@@ -37,7 +39,7 @@ function upvotePost(e, thumb, apiUrl) {
         fetch(`${apiUrl}/post/vote?id=${id}`, options)
             .then(response => response.json())
             .then(json => {
-                getUser(apiUrl);
+                getUser(apiUrl, localStorage.getItem('user'));
                 // increase the upvote count if the user 
                 // hasn't already voted
                 if (thumb.style.color != 'rgb(0, 121, 211)')
@@ -65,7 +67,7 @@ function deleteVote(e, thumb, apiUrl) {
         fetch(`${apiUrl}/post/vote?id=${id}`, options)
             .then(response => response.json())
             .then(json => {
-                getUser(apiUrl);
+                getUser(apiUrl, localStorage.getItem('user'));
                 // decrease the upvote count
                 if (thumb.style.color == 'rgb(0, 121, 211)')
                     thumb.parentNode.previousSibling.textContent--;
@@ -94,7 +96,7 @@ function checkUserInUpvotes(postId, userId, thumb, apiUrl) {
             let voted = upvoteUsers.find(function(voterId) {
                 return voterId == userId;
             });
-            
+               
             if (voted) 
                 thumb.style.color = 'rgb(0, 121, 211)';
         });
@@ -102,10 +104,9 @@ function checkUserInUpvotes(postId, userId, thumb, apiUrl) {
 
 // finds the logged in user's info and stores the user's information and 
 // id in local storage
-function getUser(apiUrl) {
+function getUser(apiUrl, username) {
     var userToken = localStorage.getItem('token');
-    var username = localStorage.getItem('user');
-
+   
     let options = {
         method: 'GET',
         headers: {
@@ -113,13 +114,14 @@ function getUser(apiUrl) {
             'Authorization': 'Token '+ userToken
         }
     }
-    
-    fetch(`${apiUrl}/user?username=${username}`, options)
-        .then(response => response.json())
-        .then(json => {
-            localStorage.setItem('userId', json.id); 
-            localStorage.setItem('userInfo', JSON.stringify(json)); 
-        });
+    if (userToken != null) {
+        fetch(`${apiUrl}/user?username=${username}`, options)
+            .then(response => response.json())
+            .then(json => {
+                localStorage.setItem('userId', json.id); 
+                localStorage.setItem('userInfo', JSON.stringify(json));
+            });
+    }
 } 
 
 export {getUser, checkUserInUpvotes, thumbsButtonFunctionality};

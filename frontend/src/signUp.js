@@ -46,7 +46,9 @@ function makeSignUpForm() {
     const signSubmit = children[6];
     const signClose = children[7];
     signSubmit.className = 'sign-up-btn';
+    signSubmit.id = 'sign-up-submit';
     signClose.className = 'sign-up-btn';
+    signClose.id = 'sign-close';
     document.getElementById('root').appendChild(signDiv);
 }
 

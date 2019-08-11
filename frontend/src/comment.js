@@ -32,7 +32,7 @@ function comment(apiUrl) {
                     // remove comment section
                     let ul = document.getElementsByClassName('grouped-comments')[0];
                     if (ul.hasChildNodes) {
-                        for (comment of ul.childNodes) 
+                        for (let comment of ul.childNodes) 
                             comment.remove();
                     }
                     // make a comment template
@@ -46,17 +46,25 @@ function comment(apiUrl) {
                     let message = modalComments.getElementsByTagName('p')[0];
                     message.textContent = '';
                     
+                    // update comments number in the feed
+                    let post = document.getElementById(postId);
+                    let commentElement = post.childNodes[1].childNodes[5];
+                    let numComments = commentElement.textContent.split(' ')[0];
+                    numComments++;
+                    commentElement.textContent = numComments + ' comments';
+                  
+                    //commentElement.textContent
                     // reset comment input field
                     let form = document.getElementById('comment-form');
                     form.reset();
                     
-                    // clear any posts on profile
+                    // clear any posts on the userpage
                     // increase the comments count by reloading the
                     // posts in profile page
-                    document.getElementsByClassName('profile-posts')[0].innerText = '';
-                    getUser(apiUrl);
+                    document.getElementById('page-posts').innerText = '';
+                    getUser(apiUrl, localStorage.getItem('user'));
                     let json2 = JSON.parse(localStorage.getItem('userInfo'));
-                    getPostInfo(apiUrl, json2.posts);
+                    getPostInfo(apiUrl, json2.posts, 'page-posts', 'loadPost');
                 });
         } else {
             let commentWindow = document.getElementById('comments-screen');

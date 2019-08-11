@@ -31,20 +31,26 @@ function editProfileMode() {
     email.style.display = 'none';
     password.style.display = 'none';
     
-    let postNum = profile.getElementsByTagName('label')[4];
+    let followers = profile.getElementsByTagName('label')[4];
+    let followersNo = followers.nextSibling;
+    let postNum = profile.getElementsByTagName('label')[5];
     let postNumValue = postNum.nextSibling;
     let postUpvotes = postNumValue.nextSibling;
     let posts = postUpvotes.nextSibling;
     let username = Uname.previousSibling.previousSibling;
     let usernameTitle = username.previousSibling;
-  
+    let profileUpvotes = document.getElementById('profile-upvotes');
+    
     username.style.display = 'none';
     usernameTitle.style.display = 'none';
+    profileUpvotes.style.display = 'none';
     
-    postNum.style.visibility = 'hidden';
-    postNumValue.style.visibility = 'hidden';
-    postUpvotes.style.visibility = 'hidden';
-    posts.style.visibility = 'hidden';
+    followers.style.display = 'none';
+    followersNo.style.display = 'none';
+    postNum.style.display = 'none';
+    postNumValue.style.display = 'none';;
+    postUpvotes.style.display = 'none';
+    posts.style.display = 'none';
 }
 
 // switch from editing profile mode to showing the user's profile
@@ -52,14 +58,16 @@ function profileMode() {
     let profile = document.getElementById('profile-screen').firstChild.childNodes;
     
     for (let element of profile) {
-        if (element.tagName === 'INPUT' || 
+        if (element.id === 'empty-message-profile') {
+            element.style.display = 'none';
+        } else if (element.id === 'profile-btn-div') { 
+            element.style.visibility = 'visible';
+        } else if (element.tagName === 'INPUT' || 
             element.style.display === 'inline-block') {
             element.style.display = 'none';
         } else if (element.style.display === 'none') { 
             element.style.display = 'block';
-        } else {
-            element.style.visibility = 'visible';
-        }
+        } 
     }
    
     let message = document.getElementById('edit-error'); 
@@ -123,7 +131,6 @@ function updateProfile(apiUrl) {
                 
                 // go back to profile mode
                 setTimeout(function() { profileMode() } , 1000);
-                console.log(json);
             });
     } 
     

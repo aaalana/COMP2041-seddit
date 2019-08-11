@@ -121,25 +121,25 @@ function fetchPublicFeed(apiUrl) {
 
 // generates the user's feed (for users logged in or not)
 function makeFeed(json, apiUrl) {
-    // make sure the user id is stored in local storage
+    // gets the user's id via the logged in <user> element
     let userId = '';
     if (localStorage.getItem('login') == 'true') {
-        getUser(apiUrl);
-        userId = localStorage.getItem('userId');
+        let username = localStorage.getItem('user');
+        getUser(apiUrl, username);
+        userId = `${localStorage.getItem('userId')}`;
     }
     
     // sorting posts from most recent to least
     let sortedPosts = sortPosts(json.posts);
 
     // adding posts to the feed
-    let feedLi = document.getElementsByClassName('post')[0];
-    
     for(let post of sortedPosts) {
-        loadPost(post, userId, apiUrl);
+        loadPost(post, userId, apiUrl, 'feed');
     }
+    
     // remove the fake template post
+    let feedLi = document.getElementsByClassName('post')[0];
     let title = feedLi.childNodes[1].firstChild;
-   
     if (title.textContent == '') {
         feedLi.remove();  
     }       
@@ -155,15 +155,22 @@ function sortPosts(posts) {
 
 // clones the template post element and modifies the text of 
 // the post
-function loadPost(post, userId, apiUrl) {
-    let feedLi = document.getElementsByClassName('post')[0];
-    let feedPost = feedLi.cloneNode(true);
+function loadPost(post, userId, apiUrl, elementId) {
+    let feedPost = makePostTemplate();
     feedPost.id = post.id;
-   
+    
+    // remove any images that were previously attached on the template post
+    if (feedPost.lastChild.className == 'post-container') 
+        feedPost.getElementsByClassName('post-container')[0].remove();
+    
     let title = feedPost.childNodes[1].childNodes[0];
     title.textContent = post.title;
     let author = feedPost.childNodes[1].childNodes[1];
+    let username = author.textContent.substring(10);
+    getUser(apiUrl, username);
+    let id = localStorage.getItem('userId');
     author.textContent = 'Posted by ' + post.meta.author;
+    author.id = id;
     let upvotes = feedPost.firstChild;
     upvotes.textContent = post.meta.upvotes.length;
     let date = feedPost.childNodes[1].childNodes[2];
@@ -173,9 +180,10 @@ function loadPost(post, userId, apiUrl) {
     
     // change the thumbs to blue if the user has already upvoted
     // on the post
-    if (localStorage.getItem('login') == 'true')
+    if (localStorage.getItem('login') == 'true') {
+        thumb.style.visibility = 'visible';
         checkUserInUpvotes(post.id, userId, thumb, apiUrl);
-   
+    }
     let description = feedPost.childNodes[1].childNodes[4];
     description.textContent = post.text;
     let comments = feedPost.childNodes[1].childNodes[5];
@@ -199,12 +207,8 @@ function loadPost(post, userId, apiUrl) {
         feedPost.appendChild(container);
     }
     
-    let feedUl = document.getElementById('feed');
+    let feedUl = document.getElementById(elementId);
     feedUl.appendChild(feedPost);
-    let main = document.getElementsByTagName('main')[0];
-    main.appendChild(feedUl);
-    
-    document.getElementById('root').appendChild(main);
 }
 
 // converts UNIX timestamps to date timestamps
@@ -229,18 +233,24 @@ function infiniteScroll(apiUrl) {
     let percentage;
     let start = 0;
     window.addEventListener('scroll', function() {
-        // calculates an approximate percentage of how much the user has 
+        // calculates an approximate height of how much the user has 
         // scrolled through the page
         let scrolledHeight = pageYOffset;
         let lastPost = document.getElementById('feed').lastChild;
-        let lastPostOffset = lastPost.offsetTop + lastPost.clientHeight;
-        let scrollOffset = pageYOffset + window.innerHeight;
+        
+        // calculates the distance from the first post to the last post
+        // including the height of the posts themselves
+        let firstToLastPost = lastPost.offsetTop + lastPost.clientHeight;
       
-        // load more posts
-        // adjust where the posts start loading from
-        if (scrollOffset > lastPostOffset - 10) {
+        // calculates the height from the top to the bottom of the page
+        let pageScrollHeight = pageYOffset + window.innerHeight;
+       
+        // load more posts when the scroll bar reaches around the bottom
+        // of the page         
+        if (pageScrollHeight > firstToLastPost + 20) {
+            // only load 10 posts at a time
             start = start + 10;
-            loadMorePosts(apiUrl, start)
+            loadMorePosts(apiUrl, start);
         }
     });
 }
@@ -266,4 +276,12 @@ function loadMorePosts(apiUrl, start) {
             makeFeed(json, apiUrl);
         });
 }
-export {makePostTemplate, infiniteScroll, loadPost, createFeedTemplate, fetchPublicFeed, timeConverter, makeFeed, togglePost};
+
+export {makePostTemplate, 
+        infiniteScroll, 
+        loadPost, 
+        createFeedTemplate, 
+        fetchPublicFeed, 
+        timeConverter, 
+        makeFeed, 
+        togglePost};

@@ -140,7 +140,8 @@ function loadVotesComments(apiUrl) {
     closeComments.onclick = () => {
         modalComments.style.visibility = 'hidden';
         // remake the template comment
-        makeCommentTemplate()
+        makeCommentTemplate();
+        document.getElementById('empty-message').textContent = '';
     } 
 }
 
@@ -188,6 +189,34 @@ function getPost(postId, className, apiUrl) {
 
  // adds the users who upvoted on a post to the upvotes modal window
 function showUpvotes(usersId, apiUrl) {
+    // load the users who have voted
+    // otherwise, show a message indicating that no one has upvoted on 
+    // the post
+    if (usersId.length != 0) {
+        let modalUpvotes = document.getElementById('upvotes-screen');
+        let message = modalUpvotes.getElementsByTagName('p')[0];
+        message.textContent = '';
+        loadUsers(usersId, 'upvote-users', apiUrl);
+    } else {
+         let modalUpvotes = document.getElementById('upvotes-screen');
+         let message = modalUpvotes.getElementsByTagName('p')[0];
+         message.style.color = 'black';
+         message.textContent = 'No one has upvoted this post.';
+    }
+}
+
+// loads a list of users onto a modal window
+function loadUsers(usersId, className, apiUrl) {
+    // search users by id
+    for (let id of usersId) {
+        // convert the userId into a username
+        userIdToUsername(id, apiUrl, className);
+    }
+}
+
+// converts a userId to a username and attaches it to an element on the
+// modal window
+function userIdToUsername(id, apiUrl, className) {
     var userToken = localStorage.getItem('token');
     let options = {
         method: 'GET',
@@ -197,32 +226,20 @@ function showUpvotes(usersId, apiUrl) {
         }
     }
    
-    // load the users who have voted
-    // otherwise, show a message indicating that no one has upvoted on 
-    // the post
-    if (usersId.length != 0) {
-        // search users by id
-        for (let id of usersId) {
-            fetch(`${apiUrl}/user?id=${id}`, options)
-                    .then(response => response.json())
-                    .then(json => {
-                        // add each user onto the modal window
-                        let templateUser = document.getElementsByClassName('upvote-users')[0];
-                        let user = templateUser.cloneNode(true);
-                        user.textContent = json.username;
-                        templateUser.insertAdjacentElement('afterend', user);
-                        
-                        // remove the template user element
-                        if (templateUser && templateUser.textContent == '') 
-                            templateUser.remove();
-                    });
-        }
-    } else {
-         let modalUpvotes = document.getElementById('upvotes-screen');
-         let message = modalUpvotes.getElementsByTagName('p')[0];
-         message.style.color = 'black';
-         message.textContent = 'No one has upvoted this post.';
-    }
+    fetch(`${apiUrl}/user?id=${id}`, options)
+            .then(response => response.json())
+            .then(json => {
+                // add each username onto the modal window
+                let templateUser = document.getElementsByClassName(className)[0];
+                let user = templateUser.cloneNode(true);
+                user.textContent = json.username;
+                
+                templateUser.insertAdjacentElement('afterend', user);
+                            
+                // remove the template user element
+                if (templateUser && templateUser.textContent == '') 
+                    templateUser.remove(); 
+            });
 }
 
 // shows the comments on the modal window
@@ -234,7 +251,10 @@ function showComments(commentsArray) {
     
     // load comments into the comment section
     // otherwise show a message indicating that there are no comments
+    let modalComments = document.getElementById('comments-screen');
+    let message = modalComments.getElementsByTagName('p')[0];
     if (commentsArray.length != 0) {
+        message.textContent = '';
         for (let commentObj of sortedComments) {
             // making elements for each comment in the comment section
             let templateComment = document.getElementsByClassName('comment-users')[0];
@@ -255,8 +275,6 @@ function showComments(commentsArray) {
             templateComment.insertAdjacentElement('afterend', commentContainer);
         }
     } else {
-        let modalComments = document.getElementById('comments-screen');
-        let message = modalComments.getElementsByTagName('p')[0];
         message.style.color = 'black';
         message.textContent = 'No one has commented on this post';
     }
@@ -268,4 +286,10 @@ function showComments(commentsArray) {
     }
 }
 
-export {makeCommentTemplate, getPost, makeUpvotesWindow, makeCommentsWindow, loadVotesComments};
+export {userIdToUsername,
+        loadUsers,  
+        makeCommentTemplate, 
+        getPost, 
+        makeUpvotesWindow, 
+        makeCommentsWindow, 
+        loadVotesComments};
