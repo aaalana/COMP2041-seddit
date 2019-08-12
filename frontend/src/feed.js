@@ -126,7 +126,7 @@ function makeFeed(json, apiUrl) {
     if (localStorage.getItem('login') == 'true') {
         let username = localStorage.getItem('user');
         getUser(apiUrl, username);
-        userId = `${localStorage.getItem('userId')}`;
+        userId = localStorage.getItem('userId');
     }
     
     // sorting posts from most recent to least
@@ -279,7 +279,8 @@ function loadMorePosts(apiUrl, start) {
 
 export {makePostTemplate, 
         infiniteScroll, 
-        loadPost, 
+        loadPost,
+        sortPosts, 
         createFeedTemplate, 
         fetchPublicFeed, 
         timeConverter, 

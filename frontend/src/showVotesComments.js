@@ -227,19 +227,19 @@ function userIdToUsername(id, apiUrl, className) {
     }
    
     fetch(`${apiUrl}/user?id=${id}`, options)
-            .then(response => response.json())
-            .then(json => {
-                // add each username onto the modal window
-                let templateUser = document.getElementsByClassName(className)[0];
-                let user = templateUser.cloneNode(true);
-                user.textContent = json.username;
-                
-                templateUser.insertAdjacentElement('afterend', user);
-                            
-                // remove the template user element
-                if (templateUser && templateUser.textContent == '') 
-                    templateUser.remove(); 
-            });
+        .then(response => response.json())
+        .then(json => {
+            // add each username onto the modal window
+            let templateUser = document.getElementsByClassName(className)[0];
+            let user = templateUser.cloneNode(true);
+            user.textContent = json.username;
+            
+            templateUser.insertAdjacentElement('afterend', user);
+                        
+            // remove the template user element
+            if (templateUser && templateUser.textContent == '') 
+                templateUser.remove(); 
+        });
 }
 
 // shows the comments on the modal window

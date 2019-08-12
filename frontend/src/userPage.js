@@ -180,7 +180,7 @@ function loadUserPage(username, apiUrl) {
      
     // load the user's posts
     if (json.posts.length === 0) {
-        let message = document.getElementById('message-posts');
+        let message = document.getElementsByClassName('message-posts')[0];
         message.textContent = 'You have no posts';
     } else {
         getPostInfo(apiUrl, json.posts, 'page-posts', 'loadPost');

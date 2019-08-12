@@ -220,6 +220,10 @@ p.post-description {
   margin-right: 20px;
 }
 
-#page-posts {
-  
+.message-posts {
+  margin-bottom: 90px;
+}
+
+#user-screen .modal-content {
+  height: 70%;
 }

@@ -1,5 +1,5 @@
 import {getUser, checkUserInUpvotes} from './upvote.js';
-import {loadPost, makePostTemplate, timeConverter} from './feed.js';
+import {loadPost, sortPosts, makePostTemplate, timeConverter} from './feed.js';
 import {editProfileMode} from './updateProfile.js';
 import {loadUsers, userIdToUsername} from './showVotesComments.js';
 
@@ -58,6 +58,7 @@ function makeProfileWindow() {
     profileNumPosts.className = 'profile-num-posts';
     const profileUpvotes = document.createElement('p');
     profileUpvotes.id = 'profile-upvotes';
+    profileUpvotes.textContent = '0';
     
     // elements used when updating profile
     let editName = document.createElement('input');
@@ -153,7 +154,7 @@ function showProfile(apiUrl) {
         // extract the user's information via localStorage
         getUser(apiUrl, localStorage.getItem('user'));
         let json = JSON.parse(localStorage.getItem('userInfo'));
-        
+       
         // add the total number of upvotes to profile
         getPostInfo(apiUrl, json.posts, 'profile-upvotes', 'upvotes');
         
@@ -242,7 +243,6 @@ function showFollowing(apiUrl, option) {
 function getPostInfo(apiUrl, postIds, elementId, option) {
     // get the user's token
     var userToken = localStorage.getItem('token');
-    
     let postOptions = {
         method: 'GET',
         headers: {
@@ -250,32 +250,45 @@ function getPostInfo(apiUrl, postIds, elementId, option) {
         'Authorization': 'Token '+ userToken
         }
     }
+  
+    // make an array of urls to fetch
+    let URLS = [];
+    for(let postId of postIds) 
+        URLS.push(`${apiUrl}/post?id=${postId}`);
     
-    let userId = '';
-    if (localStorage.getItem('login') == 'true') {
-        getUser(apiUrl,localStorage.getItem('user'));
-        userId = localStorage.getItem('userId');
-    }
+    // change the array of URLS into json objects is mapped to fetch 
+    // requests and converts the data obtained to json
+    URLS = URLS.map(url => fetch(url, postOptions).then(response => response.json()));
     
-    // sort posts so when loaded, the most recent is shown
-    let sortPostIds = postIds.sort(function(a,b) { return b-a });
+    // The promise returns an array of post objects
     let total = 0;
-    
-    for(let postId of sortPostIds) {
-        fetch(`${apiUrl}/post?id=${postId}`, postOptions)
-            .then(response => response.json())
-            .then(json => {
-                // load the user's posts into a modal window
-                if (option == 'loadPost') {
-                    loadPost(json, userId, apiUrl, elementId); 
-                // calculate the total upvotes across all the user's posts
-                } else if (option == 'upvotes') {
-                    total += json.meta.upvotes.length;
-                    let upVotes = document.getElementById('profile-upvotes');
-                    upVotes.textContent = total;
+    Promise.all(URLS)
+        .then(json => {
+            // calculate the total upvotes across all the user's posts
+            // and put it on the user's profile
+            if (option == 'upvotes') {
+                for (let post of json) 
+                    total += post.meta.upvotes.length;
+                let upVotes = document.getElementById('profile-upvotes');
+                upVotes.textContent = total;
+            // load posts into the user page   
+            } else if (option == 'loadPost') {
+                // get the user id
+                let userId = '';
+                if (localStorage.getItem('login') == 'true') {
+                    let username = localStorage.getItem('user');
+                    getUser(apiUrl, username);
+                    userId = localStorage.getItem('userId');
                 }
-            });
-    }
+                
+                // sorting posts from most recent to least
+                let sortedPosts = sortPosts(json);
+                
+                // adding posts to the feed
+                for (let post of sortedPosts) 
+                    loadPost(post, userId, apiUrl, elementId); 
+            }
+    });
 }
 
 export {makeFollowingWindow, 

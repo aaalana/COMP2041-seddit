@@ -8,6 +8,7 @@
                             
 6/09/19     11:00   23:15   -Level 2 show upvote, show comments and 
                              make a post functionality done
+                            -level 3 live update done
                             
 7/09/19     20:00   22:00   -Code is split up into different files
                              to improve style
@@ -18,9 +19,28 @@
                               been published)
                             -finished splitting code into individual 
                              files    
+                             
 9/09/19     12:30   23:59   -completed rendering of the user's profile 
                             -completed infinite scroll on user's feed
                              (not implemented on public feed since only
                               a max of 20 posts are rendered)  
                             -fixed user's profile bug where images 
-                             would not show up correctly in user's posts                         
+                             would not show up correctly in user's posts 
+                                                     
+10/09/19    15:00   23:59   -fixed bug in profile (posts were not show
+                             showing when the user originally has no 
+                             posts)
+                            -Level 3 comments and edit profile done
+                            
+11/09/19    17:00   23:59   -fixed bug with feed
+                             (when the user first logs their upvotes did
+                             not show until the page refreshed again)
+                             again)
+                            -Level 3 userpages done
+                            -started code for allowing the logged in user 
+                             to follow other users
+                            -changed profile so the total number of upvotes
+                             showed instead of the posts themselves
+                             (misinterpreted the assignment spec)
+                             
+12/09/19    09:00  23:5     -fixed bug on feed (comments did not live update)
