@@ -1,6 +1,7 @@
 import {getPostInfo, showFollowing} from './showProfile.js';
 import {getUser} from './upvote.js';
-
+import {loadMorePosts} from './feed.js';
+ 
 // make a template user page - user data has not been filled in yet
 function makeUserPage() {
     const modalUpvotes = document.getElementById('upvotes-screen');
@@ -21,7 +22,7 @@ function makeUserPage() {
    
     const followBtn = document.createElement('button');
     followBtn.type = 'button';
-    followBtn.textContent = 'FOLLOW +';
+    followBtn.textContent = 'UNFOLLOW -';
     followBtn.className = 'button button-primary';
     followBtn.id = 'follow-btn';
  
@@ -70,6 +71,7 @@ function makeUserPage() {
 function mainUserPage(apiUrl) {
     let userPage = document.getElementById('user-screen');
     if (localStorage.getItem('login') === 'true') {
+        // open the user page when a name/image is clicked 
         window.addEventListener('mouseover', function(e) {
             let authors = document.getElementsByClassName('post-author');
             let images = document.getElementsByClassName('post-image');
@@ -82,20 +84,36 @@ function mainUserPage(apiUrl) {
         close.onclick = () => {
             userPage.style.visibility = 'hidden';
             document.getElementById('page-posts').innerText = '';
+            // live update the user feed accordingly if the logged in user 
+            // unfollowed a user 
+            if (followBtn.textContent == 'FOLLOW +') {
+                let postId = localStorage.getItem('postId');
+                document.getElementById(postId).remove();
+            }
         }
         
-        // let the logged in user to follow other users 
-        let followBtn = document.getElementById('follow-btn');
+        // extract information of the logged in user
+        let username = localStorage.getItem('user');
+        getUser(apiUrl, username);
+      
+        // check if the logged in user follows the user from the extracted
+        // information 
+        // if so, change the follow button to unfollow 
+        checkFollowing(apiUrl);
         
+        // let the logged in user to follow/unfollow other users 
+        let followBtn = document.getElementById('follow-btn');
         followBtn.onclick = () => {
+            // switch the follow button to unfollow and vice versa
+            // live update the user feed accordingly
+            let followUser = followBtn.parentNode.nextSibling.nextSibling.textContent;
             if (followBtn.textContent == 'FOLLOW +') {
                 followBtn.textContent = 'UNFOLLOW -';
+                follow(apiUrl, followUser);
             } else {
                 followBtn.textContent = 'FOLLOW +';
+                unfollow(apiUrl, followUser);
             }
-           
-            let json = JSON.parse(localStorage.getItem('userInfo'));
-            //follow(apiUrl, json.username);
         }
         
         // show who the user follows when the following button
@@ -105,6 +123,24 @@ function mainUserPage(apiUrl) {
             showFollowing(apiUrl, 'open');
         }
     } 
+}
+
+// check if the logged in user follows the user
+function checkFollowing(apiUrl) {
+    // extract a list of user ids that the user is followed by
+    let followBtn = document.getElementById('follow-btn');
+    let userId = localStorage.getItem('userId');
+    let json = JSON.parse(localStorage.getItem('userInfo'));
+    
+    // search through the list of followers for logged in user's id
+    // if found, the logged in user follows the user (set button to unfollow)
+    // if not found, the logged in user does not follow the user 
+    // (set button to follow)
+    if (json != null && 
+        json.following.find(function(id) { return id == userId}) != undefined) 
+        followBtn.textContent = 'UNFOLLOW -'; 
+    else 
+        followBtn.textContent == 'FOLLOW +'
 }
 
 // opens the user's page when the author or image is clicked on 
@@ -121,11 +157,13 @@ function openUserPage(authors, images, e, apiUrl) {
             // local storage
             let username = author.textContent.substring(10);
             getUser(apiUrl, username);
-           
+            
+            // store the id of the post clicked on into local storage
+            let postId = author.parentNode.parentNode.id;
+            localStorage.setItem('postId', postId);
+            
             author.onclick = () => {
                 userPage.style.visibility = 'visible';
-                //let json = JSON.parse(localStorage.getItem('userInfo'));
-                //json.following
                 // load the user's data onto the user's page
                 loadUserPage(username, apiUrl);
             }
@@ -150,6 +188,10 @@ function openUserPage(authors, images, e, apiUrl) {
             let author = image.parentNode.previousSibling.childNodes[1];
             let username = author.textContent.substring(10);
             getUser(apiUrl, username);
+            
+            // store the id of the post clicked on into local storage
+            let postId = image.parentNode.parentNode.id;
+            localStorage.setItem('postId', postId);
             
             image.onclick = () => {
                 userPage.style.visibility = 'visible';
@@ -204,6 +246,7 @@ function follow(apiUrl, userName) {
         });
 }
 
+// allows the logged in user to unfollow another user
 function unfollow(apiUrl, username) {
     var userToken = localStorage.getItem('token');
     let options = {
@@ -213,10 +256,13 @@ function unfollow(apiUrl, username) {
         'Authorization': 'Token '+ userToken
         }
     }
-    
+    console.log(username);
+     console.log(apiUrl);
     fetch(`${apiUrl}/user/unfollow?username=${username}`, options)
         .then(response => response.json())
-        .then(json => {});
+        .then(json => {
+            console.log(json);
+        });
 }
 
 export {makeUserPage, mainUserPage};

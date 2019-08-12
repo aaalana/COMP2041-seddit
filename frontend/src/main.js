@@ -54,22 +54,21 @@ function initApp(apiUrl) {
     // Users that are not logged in can: log in or sign up, see a public
     // feed, see the number of comments/upvotes
     
+    // LOGOUT - log the user out
     // clear local storage, feed, 'logged as <user>' and logout button
     // add the login and sign up button to the header
-   
-    // LOGOUT - log the user out
     let loginBtn = document.getElementById('login-button');
     let signBtn = document.getElementById('sign-up-btn');
     let logout = document.getElementById('logout');
     let loggedUser = document.getElementById('logged-user');
     logout.onclick = () => {
         localStorage.clear(); 
-        document.getElementsByTagName('Ul')[0].innerText = ''; 
-        location.reload();
+        document.getElementsByTagName('main')[0].innerText = ''; 
         logout.style.display = 'none';
         loginBtn.style.display = 'inline-block';
         signBtn.style.display = 'inline-block';
         loggedUser.textContent = '';
+        location.reload();
     }    
     
     // renders the page according to whether or not a user is logged in 
@@ -93,13 +92,10 @@ function initApp(apiUrl) {
             fetch(`${apiUrl}/user/feed`, optionsUserFeed)
                 .then(response => response.json())
                 .then(json => {
-                    // remove any invalid tokens 
+                    // log the user out if the the token is invalid 
                     if (json.message && 
                         json.message == "Invalid Authorization Token") {
-                        localStorage.clear(); 
-                        localStorage.setItem('login', false);
-                        fetchPublicFeed(apiUrl);
-                        location.reload();
+                        logout.click();
                     // loads the website for a logged in user
                     } else {
                         //record that the user is logged in

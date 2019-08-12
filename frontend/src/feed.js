@@ -285,4 +285,5 @@ export {makePostTemplate,
         fetchPublicFeed, 
         timeConverter, 
         makeFeed, 
+        loadMorePosts,
         togglePost};
