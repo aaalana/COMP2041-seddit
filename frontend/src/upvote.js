@@ -93,6 +93,7 @@ function checkUserInUpvotes(postId, userId, thumb, apiUrl) {
         .then(response => response.json())
         .then(json => {
             let upvoteUsers = json.meta.upvotes;
+         
             let voted = upvoteUsers.find(function(voterId) {
                 return voterId == userId;
             });
@@ -120,6 +121,9 @@ function getUser(apiUrl, username) {
             .then(json => {
                 localStorage.setItem('userId', json.id); 
                 localStorage.setItem('userInfo', JSON.stringify(json));
+                
+                if (username == localStorage.getItem('user'))
+                    localStorage.setItem('loggedUserInfo', JSON.stringify(json));
             });
     }
 } 

@@ -7,6 +7,7 @@ function editProfileMode() {
     let Uname = profile.getElementsByClassName('userDetails')[0];
     let email = profile.getElementsByClassName('userDetails')[1];
     let password = profile.getElementsByClassName('userDetails')[2];
+    
   
     let editName = Uname.nextSibling;
     editName.value = Uname.textContent;
@@ -84,7 +85,7 @@ function updateProfile(apiUrl) {
         let message = document.getElementById('edit-error'); 
         message.style.color = 'red';
         let userToken = localStorage.getItem('token');
-        
+      
         // input validation
         // editing fields cannot be empty
         if (!Uname || !email || !password) {

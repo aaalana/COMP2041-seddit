@@ -43,5 +43,7 @@
                              showed instead of the posts themselves
                              (misinterpreted the assignment spec)
                              
-12/09/19    09:00  23:5     -fixed bug on feed (comments did not live update)
+12/09/19    09:00  23:59    -fixed bug on feed (comments did not live update)
                             -Level 3 follow done
+13/09/19    15:00  20:00    -see public feed option for logged in user added
+                            -Level 3 update and delete post done                  

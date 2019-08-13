@@ -30,7 +30,9 @@ function makeSignUpForm() {
     signEmail.required = true;
     signEmail.id = 'sign-email';
     emailLabel.appendChild(signEmail);
-    signDiv.firstChild.childNodes[2].insertAdjacentElement('afterend',emailLabel);
+    signDiv.firstChild
+           .childNodes[2]
+           .insertAdjacentElement('afterend', emailLabel);
    
     const signName = document.createElement('input');
     signName.placeholder = 'Enter Name';
@@ -38,7 +40,9 @@ function makeSignUpForm() {
     signName.required = true;
     signName.id = 'sign-name';
     nameLabel.appendChild(signName);
-    signDiv.firstChild.childNodes[3].insertAdjacentElement('afterend', nameLabel);
+    signDiv.firstChild
+           .childNodes[3]
+           .insertAdjacentElement('afterend', nameLabel);
     
     children = signDiv.firstChild.childNodes;
     const inputError = children[5];
@@ -103,7 +107,7 @@ function signUpFunctionality(apiUrl) {
                         localStorage.setItem('user', `${username}`);
                         localStorage.setItem('login', true);
                         localStorage.setItem('password', `${password}`);
-                        document.getElementById('signup-form').submit();
+                        location.reload();
                     }
                 }); 
         }

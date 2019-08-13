@@ -20,6 +20,11 @@ function createFeedTemplate() {
     popularPosts.className = 'feed-title alt-text';
     popularPosts.textContent = 'Popular posts';
     
+    const publicBtn = document.createElement('button');
+    publicBtn.className = 'button button-primary';
+    publicBtn.textContent = 'See Public Feed';
+    publicBtn.id = 'public-btn';
+    
     const postBtn = document.createElement('button');
     postBtn.className = 'button button-secondary';
     postBtn.textContent = 'Post';
@@ -29,6 +34,7 @@ function createFeedTemplate() {
     
     // APPENDING ELEMENTS TO HEADER
     feedHeader.appendChild(popularPosts);
+    feedHeader.appendChild(publicBtn);
     feedHeader.appendChild(postBtn);
     feedUl.appendChild(feedHeader);
     feedUl.appendChild(feedLi);
@@ -36,6 +42,56 @@ function createFeedTemplate() {
    
     // APPENDING MAIN TO DOCUMENT
     document.getElementById('root').appendChild(main);
+}
+
+function makePublic() {
+    // make modal for public feed when user is logged in  
+    const modalPub = document.createElement('div');
+    modalPub.className = 'black-bg';
+    modalPub.id = 'public-screen';
+    
+    const modalWindow = document.createElement('div');
+    modalWindow.className = 'modal-content';
+   
+    const close = document.createElement('span');
+    close.className = 'material-icons';
+    close.id = 'close-pub-button';
+    close.textContent = 'close';
+    
+    const title = document.createElement('h1');
+    title.textContent = 'Public Feed'
+    title.className = 'title';
+     
+    const feedUl = document.createElement('ul');
+    feedUl.id = 'pub-feed';
+    const feedAttribute = document.createAttribute('data-id-feed');
+    feedUl.setAttributeNode(feedAttribute); 
+    
+    modalWindow.appendChild(close);
+    modalWindow.appendChild(title);
+    modalWindow.appendChild(feedUl);
+    modalPub.appendChild(modalWindow);
+    
+    document.getElementById('root').appendChild(modalPub); 
+}
+
+// opens and closes the public modal 
+function showPublic(apiUrl) {
+    let pubModal = document.getElementById('public-screen');
+    let publicBtn = document.getElementById('public-btn');
+    let feedUl = document.getElementById('pub-feed');
+    publicBtn.onclick = () => {
+        pubModal.style.visibility = 'visible';
+        fetchPublicFeed(apiUrl, 'pub-feed');
+    }
+   
+    let closeBtn = document.getElementById('close-pub-button');
+    closeBtn.onclick = () => {
+        pubModal.style.visibility = 'hidden';
+        // clear the public feed
+        feedUl.innerText = '';
+        location.reload();
+    }
 }
 
 function makePostTemplate() {
@@ -69,7 +125,17 @@ function makePostTemplate() {
     feedThumbsUp.className = 'material-icons';
     feedThumbsUp.id = 'thumbs-up';
     feedThumbsUp.textContent = 'thumb_up';
-        
+      
+    const feedDelete = document.createElement('span');
+    feedDelete.className = 'material-icons';
+    feedDelete.id = 'delete';
+    feedDelete.textContent = 'delete';  
+    
+    const feedEdit = document.createElement('span');
+    feedEdit.className = 'material-icons';
+    feedEdit.id = 'edit';
+    feedEdit.textContent = 'edit'; 
+    
     const feedDescript = document.createElement('p');
     feedDescript.className = 'post-description'
     
@@ -85,6 +151,8 @@ function makePostTemplate() {
     content.appendChild(feedPara);
     content.appendChild(feedDate);
     content.appendChild(feedThumbsUp);
+    content.appendChild(feedDelete);
+    content.appendChild(feedEdit);
     content.appendChild(feedDescript);
     content.appendChild(feedComments);
     content.appendChild(feedSubseddit);
@@ -113,28 +181,25 @@ function togglePost(){
 }
 
 // generate the public feed for a user who is not logged in 
-function fetchPublicFeed(apiUrl) {
+function fetchPublicFeed(apiUrl, ul) {
     fetch(`${apiUrl}/post/public`)
         .then(response => response.json())
-        .then(json => makeFeed(json))
+        .then(json => makeFeed(json, apiUrl, ul))
 }
 
 // generates the user's feed (for users logged in or not)
-function makeFeed(json, apiUrl) {
+function makeFeed(json, apiUrl, ul) {
     // gets the user's id via the logged in <user> element
     let userId = '';
-    if (localStorage.getItem('login') == 'true') {
-        let username = localStorage.getItem('user');
-        getUser(apiUrl, username);
-        userId = localStorage.getItem('userId');
-    }
-    
+    if (localStorage.getItem('login') == 'true') 
+        userId = JSON.parse(localStorage.getItem('loggedUserInfo')).id;
+ 
     // sorting posts from most recent to least
     let sortedPosts = sortPosts(json.posts);
 
     // adding posts to the feed
     for(let post of sortedPosts) {
-        loadPost(post, userId, apiUrl, 'feed');
+        loadPost(post, userId, apiUrl, ul);
     }
     
     // remove the fake template post
@@ -165,30 +230,43 @@ function loadPost(post, userId, apiUrl, elementId) {
     
     let title = feedPost.childNodes[1].childNodes[0];
     title.textContent = post.title;
+    
     let author = feedPost.childNodes[1].childNodes[1];
-    let username = author.textContent.substring(10);
-    getUser(apiUrl, username);
-    let id = localStorage.getItem('userId');
     author.textContent = 'Posted by ' + post.meta.author;
-    author.id = id;
+    
     let upvotes = feedPost.firstChild;
     upvotes.textContent = post.meta.upvotes.length;
+    
     let date = feedPost.childNodes[1].childNodes[2];
     date.textContent = timeConverter(post.meta.published);
     date.className = 'post-date';
-    let thumb = feedPost.childNodes[1].childNodes[3];
     
-    // change the thumbs to blue if the user has already upvoted
-    // on the post
+    let username = author.textContent.substring(10);
+    let loggedUser = localStorage.getItem('user');
+    
+    let edit = feedPost.childNodes[1].childNodes[5];
+    let feedDelete = feedPost.childNodes[1].childNodes[4];
+    let thumb = feedPost.childNodes[1].childNodes[3];
     if (localStorage.getItem('login') == 'true') {
+        // only allow edit and delete post options when the user is 
+        // logged in and is the author
+        if (username == loggedUser) {
+            edit.style.visibility = 'visible';
+            feedDelete.style.visibility = 'visible';      
+        }
+        // change the thumbs to blue if the user has already upvoted
+        // on the post
         thumb.style.visibility = 'visible';
         checkUserInUpvotes(post.id, userId, thumb, apiUrl);
     }
-    let description = feedPost.childNodes[1].childNodes[4];
+    
+    let description = feedPost.childNodes[1].childNodes[6];
     description.textContent = post.text;
-    let comments = feedPost.childNodes[1].childNodes[5];
+    
+    let comments = feedPost.childNodes[1].childNodes[7];
     comments.textContent = post.comments.length + ' comments';
-    let subseddit = feedPost.childNodes[1].childNodes[6];
+    
+    let subseddit = feedPost.childNodes[1].childNodes[8];
     if (post.meta.subseddit)
         subseddit.textContent = 's/' + post.meta.subseddit;
     else
@@ -273,15 +351,17 @@ function loadMorePosts(apiUrl, start) {
             let thumbs = document.querySelectorAll('#thumbs-up');
             for (let thumb of thumbs)
                 thumb.style.visibility = 'visible';
-            makeFeed(json, apiUrl);
+            makeFeed(json, apiUrl, 'feed');
         });
 }
 
 export {makePostTemplate, 
         infiniteScroll, 
+        makePublic,
         loadPost,
         sortPosts, 
-        createFeedTemplate, 
+        createFeedTemplate,
+        showPublic,
         fetchPublicFeed, 
         timeConverter, 
         makeFeed, 

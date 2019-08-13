@@ -5,7 +5,7 @@ import {loadUsers, userIdToUsername} from './showVotesComments.js';
 
 function makeProfileWindow() {
     // SHOW USER PROFILE
-    // make the modal window for the user's profile
+    // make the modal for the user's profile
     const modalUpvotes = document.getElementById('upvotes-screen');
     const modalProfile = modalUpvotes.cloneNode(true);
     modalProfile.id = 'profile-screen';
@@ -121,7 +121,7 @@ function makeProfileWindow() {
     document.getElementById('root').appendChild(modalProfile);
 }
 
-// make the modal window to show who the user is following
+// make the modal to show who the user is following
 function makeFollowingWindow() {
     const profileFollowing = document.getElementById('upvotes-screen')
                                      .cloneNode(true);
@@ -140,11 +140,12 @@ function makeFollowingWindow() {
     profileFollowing.getElementsByTagName('ul')[0].className = 'grouped-following';
 }
   
-// allows buttons on the user's profile to open and close modal windows
+// allows buttons on the user's profile to open and close the modal
 // displays the user's profile  
 function showProfile(apiUrl) {
     // when the 'logged in as <username>' is clicked from the header
     // the user's profile is shown
+    getUser(apiUrl,localStorage.getItem('user'));
     let loggedUser = document.getElementById('logged-user');
     let modalProfile = document.getElementById('profile-screen');
     loggedUser.onclick = () => {
@@ -152,8 +153,7 @@ function showProfile(apiUrl) {
         modalProfile.style.display = 'block';
         
         // extract the user's information via localStorage
-        getUser(apiUrl, localStorage.getItem('user'));
-        let json = JSON.parse(localStorage.getItem('userInfo'));
+        let json = JSON.parse(localStorage.getItem('loggedUserInfo'));
        
         // add the total number of upvotes to profile
         getPostInfo(apiUrl, json.posts, 'profile-upvotes', 'upvotes');
@@ -172,11 +172,13 @@ function showProfile(apiUrl) {
         password.textContent = '*'.repeat(pass.length);
     }
     
-    // close the modal window when the cross is clicked on
+    // close the modal when the cross is clicked on
     let closeProfile = modalProfile.firstChild.firstChild;
     closeProfile.onclick = () => {
         modalProfile.style.visibility = 'hidden';
         modalProfile.style.display = 'none';
+        // store any updates made to the user profile to local storage
+        getUser(apiUrl, localStorage.getItem('user'));
     }
     
     // When the edit profile button is clicked, the user can edit
@@ -190,31 +192,35 @@ function showProfile(apiUrl) {
     // is shown
     let following = document.getElementById('following-btn');
     let modalFollowing = document.getElementById('following-screen');
-    getUser(apiUrl, localStorage.getItem('user'));
     following.onclick = () => {
-        showFollowing(apiUrl, 'open');
+        showFollowing(apiUrl, 'open', 'logged');
     }
     
-    // close the modal following window when the cross is clicked on
+    // close the modal when the cross is clicked on
     let closeFollowing = modalFollowing.getElementsByTagName('span')[0];
     closeFollowing.onclick = () => {
-        showFollowing(apiUrl, 'close');
+        showFollowing(apiUrl, 'close', 'logged');
     }
 }
 
 // function which controls the 'following' button found on user's profile
 // and user pages
-// it opens/closes a modal window contains a list of users that a certain  
+// it opens/closes a modal contains a list of users that a certain  
 // user follows
-function showFollowing(apiUrl, option) {
+function showFollowing(apiUrl, option, userType) {
     let modalFollowing = document.getElementById('following-screen');
     if (option == 'open') {
         document.getElementById('root').appendChild(modalFollowing);
         modalFollowing.style.visibility = 'visible';
         // get a list of users that the user follows
-        let json = JSON.parse(localStorage.getItem('userInfo'));
-       
-        // load users onto the following modal window
+        let json;
+        if (userType == 'logged') {
+            json = JSON.parse(localStorage.getItem('loggedUserInfo'));
+        } else {
+            json = JSON.parse(localStorage.getItem('userInfo'));
+        }
+        
+        // load users onto the following modal 
         let message = document.getElementById('empty-message-following');
         if (json.following.length != 0) {
             message.style.display = 'none';
@@ -225,7 +231,7 @@ function showFollowing(apiUrl, option) {
     } else {
         modalFollowing.style.visibility = 'hidden';
         
-        // clear out the list of users from the modal window
+        // clear out the list of users from the modal 
         let users = document.getElementsByClassName('grouped-following')[0];
         users.innerText = '';
         
@@ -238,8 +244,10 @@ function showFollowing(apiUrl, option) {
 
 // gets a json object of the user's information
 // depending on the the option stated, 
-// it passes the object into a function that load the user's posts
-// or it total the number of upvotes a user has across all posts
+// it passes the object into a function that load the user's posts 
+// onto an element specified by the parameter elementId
+// or it sums the number of upvotes a user has across all posts and 
+// updates that number onto the user's profile
 function getPostInfo(apiUrl, postIds, elementId, option) {
     // get the user's token
     var userToken = localStorage.getItem('token');
@@ -273,18 +281,11 @@ function getPostInfo(apiUrl, postIds, elementId, option) {
                 upVotes.textContent = total;
             // load posts into the user page   
             } else if (option == 'loadPost') {
-                // get the user id
-                let userId = '';
-                if (localStorage.getItem('login') == 'true') {
-                    let username = localStorage.getItem('user');
-                    getUser(apiUrl, username);
-                    userId = localStorage.getItem('userId');
-                }
-                
                 // sorting posts from most recent to least
                 let sortedPosts = sortPosts(json);
                 
                 // adding posts to the feed
+                let userId = localStorage.getItem('loggedUserInfo').id;
                 for (let post of sortedPosts) 
                     loadPost(post, userId, apiUrl, elementId); 
             }

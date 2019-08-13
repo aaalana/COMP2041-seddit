@@ -11,6 +11,10 @@
   display: none;
 }
 
+#login-form h2, #signup-form h2 {
+  font-size: 20px;
+}
+
 #login-form label, #signup-form label {
   font-size: 14px;
 }
@@ -35,7 +39,7 @@
 .form-container input[type=text], .form-container input[type=password] {
   width: 90%;
   padding: 15px;
-  margin: 5px 0 22px 0;
+  margin: 5px 0 10px 0;
   border-radius: 4px;
   border: none;
   background: #f1f1f1;
@@ -44,7 +48,7 @@
 .form-container .login-btn, .sign-up-btn {
   background-color: var(--reddit-blue);
   color: white;
-  padding: 16px 20px;
+  padding: 15px 15px;
   width: 100%;
   margin-bottom:10px;
   opacity: 0.8;

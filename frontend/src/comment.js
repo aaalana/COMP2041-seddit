@@ -48,7 +48,7 @@ function comment(apiUrl) {
                     
                     // update comments number in the feed
                     let post = document.getElementById(postId);
-                    let commentElement = post.childNodes[1].childNodes[5];
+                    let commentElement = post.childNodes[1].childNodes[7];
                     let numComments = commentElement.textContent.split(' ')[0];
                     numComments++;
                     commentElement.textContent = numComments + ' comments';

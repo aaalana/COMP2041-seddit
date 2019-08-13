@@ -3,7 +3,7 @@ import {timeConverter} from './feed.js';
 function makeUpvotesWindow() {    
     // SEE UPVOTES AND COMMENTS
     
-    // make modal window for upvotes 
+    // make modal for upvotes 
     const modalUpvotes = document.createElement('div');
     modalUpvotes.className = 'black-bg';
     modalUpvotes.id = 'upvotes-screen';
@@ -40,7 +40,7 @@ function makeUpvotesWindow() {
 }
 
 function makeCommentsWindow() {    
-    // make modal window for comments
+    // make modal for comments
     const modalUpvotes = document.getElementById('upvotes-screen');
     const modalComments = modalUpvotes.cloneNode(true);
     modalComments.id = 'comments-screen';
@@ -78,7 +78,7 @@ function makeCommentsWindow() {
 }
 
 function loadVotesComments(apiUrl) {
-    // when the upvotes/comments are clicked on, open its modal window
+    // when the upvotes/comments are clicked on, open its modal 
     // only open when the user is logged in
     function openModal(className, id, apiUrl) {
         if (localStorage.getItem('login') === 'true') {
@@ -91,20 +91,22 @@ function loadVotesComments(apiUrl) {
                     if (btn === e.target) {
                         btn.style.opacity = '0.5';
                         btn.onclick = () => {   
-                            // load content onto the modal window
+                            // load content onto the modal 
                              
                             // extract the post id 
                             if (className === 'vote')
                                 var postId = btn.parentNode.id;
                             else if (className === 'feed-comments') 
                                 var postId = btn.parentNode.parentNode.id;
-                           
+                            
+                            localStorage.setItem('postId-comment', postId);
                             getPost(postId, className, apiUrl);
+                            
                             let modalWindow = document.getElementById(id);
                             modalWindow.style.visibility = 'visible';
                             
-                            // allows for the modal window to show in
-                            // front of other windows
+                            // allows for the modal to show in front of
+                            // other modals
                             document.getElementById('root').appendChild(modalWindow);
                         }  
                     } else {
@@ -117,8 +119,8 @@ function loadVotesComments(apiUrl) {
     openModal('vote', 'upvotes-screen', apiUrl);
     openModal('feed-comments', 'comments-screen', apiUrl);
     
-    // closes the modal window for upvotes
-    // clear the modal window
+    // closes the modal for upvotes
+    // clear the modal
     let closeUpvote = document.getElementById('close-button');
     closeUpvote.onclick = () => {
         let modalUpvotes = document.getElementById('upvotes-screen');
@@ -133,8 +135,8 @@ function loadVotesComments(apiUrl) {
         users.appendChild(upvoteUsers);
     } 
     
-    // closes the modal window for comments
-    // clear the modal window
+    // closes the modal for comments
+    // clear the modal
     let modalComments = document.getElementById('comments-screen');
     let closeComments = modalComments.getElementsByTagName('span')[0];
     closeComments.onclick = () => {
@@ -174,7 +176,7 @@ function getPost(postId, className, apiUrl) {
     // commenting)
     localStorage.setItem('postId', postId);
     
-    // load the comments/upvote users onto the modal window
+    // load the comments/upvote users onto the modal
     fetch(`${apiUrl}/post?id=${postId}`, postOptions)
         .then(response => response.json())
         .then(json => {
@@ -187,7 +189,7 @@ function getPost(postId, className, apiUrl) {
         });
 } 
 
- // adds the users who upvoted on a post to the upvotes modal window
+ // adds the users who upvoted on a post to the upvotes modal 
 function showUpvotes(usersId, apiUrl) {
     // load the users who have voted
     // otherwise, show a message indicating that no one has upvoted on 
@@ -205,7 +207,7 @@ function showUpvotes(usersId, apiUrl) {
     }
 }
 
-// loads a list of users onto a modal window
+// loads a list of users onto a modal
 function loadUsers(usersId, className, apiUrl) {
     // search users by id
     for (let id of usersId) {
@@ -215,7 +217,7 @@ function loadUsers(usersId, className, apiUrl) {
 }
 
 // converts a userId to a username and attaches it to an element on the
-// modal window
+// modal
 function userIdToUsername(id, apiUrl, className) {
     var userToken = localStorage.getItem('token');
     let options = {
@@ -229,7 +231,7 @@ function userIdToUsername(id, apiUrl, className) {
     fetch(`${apiUrl}/user?id=${id}`, options)
         .then(response => response.json())
         .then(json => {
-            // add each username onto the modal window
+            // add each username onto the modal
             let templateUser = document.getElementsByClassName(className)[0];
             let user = templateUser.cloneNode(true);
             user.textContent = json.username;
@@ -242,7 +244,7 @@ function userIdToUsername(id, apiUrl, className) {
         });
 }
 
-// shows the comments on the modal window
+// shows the comments on the modal
 function showComments(commentsArray) {
     // sort comments starting from the most recent comment
     let sortedComments = commentsArray.sort(function(a, b){
@@ -268,7 +270,7 @@ function showComments(commentsArray) {
             let comment = document.createElement('p');
             comment.textContent = commentObj.comment;
             
-            // appending comment onto the modal window
+            // appending comment onto the modal
             commentContainer.appendChild(author);
             commentContainer.appendChild(date);
             commentContainer.appendChild(comment);

@@ -1,4 +1,14 @@
 /*feed*/
+#public-btn {
+  position: relative;
+  margin-left: 400px;
+  margin-right: 10px;
+}
+
+#post-btn {
+ justify-content: flex-end;
+}
+
 .post .content {
   width: 100%;
 }
@@ -37,17 +47,29 @@ p.post-description {
   visibility: hidden;
 }
 
+#edit, #delete {
+  color: rgb(80,80,80);
+  float: right;
+  visibility: hidden;
+  padding: 0px 5px 0px 5px;
+}
+
+#edit:hover, #delete:hover {
+  color: rgb(140,140,140);
+}
+
 #thumbs-up {
- color: rgb(80,80,80);
- float: right;
- visibility: hidden;
+  color: rgb(80,80,80);
+  float: right;
+  visibility: hidden;
+  padding: 0px 5px 0px 5px;
 }
 
 #thumbs-up:hover {
- color: var(--reddit-blue);
+  color: var(--reddit-blue);
 }
 
-/*modal window*/
+/*modal*/
 .black-bg {
   position: fixed;
   width: 100%;
@@ -64,7 +86,7 @@ p.post-description {
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: white;
-  padding: 80px;
+  padding: 40px 60px;
   width: 80%;
   height: 50%;
   overflow-y: auto;
@@ -72,17 +94,21 @@ p.post-description {
 }
 
 .modal-content label {
- font-weight: bold;
- font-size: 20px;
+  font-weight: bold;
+  font-size: 18px;
 }
 
-#close-button {
+#comment-screen .modal-content, #public-screen .modal-content{
+  height: 70%;
+}
+
+#close-button, #close-pub-button {
   float: right;
   cursor: pointer;
   color: #aaaaaa;
 }
 
-#close-button:hover, #close-button:focus {
+#close-button:hover, #close-button:focus, #close-pub-button:hover, #close-pub-button:focus {
   color: #000;
   text-decoration: none;
   cursor: pointer;
@@ -130,12 +156,12 @@ p.post-description {
   text-align: center;
 }
 
-.post-form {
+.post-form, .edit-form {
   max-width: 90%;
   margin: 0 auto;
 }
 
-.post-form input, textarea {
+.post-form input, textarea, .edit-form input {
   width: 100%;
   padding: 15px;
   border-radius: 4px;
@@ -143,12 +169,12 @@ p.post-description {
   background: #f1f1f1;
 }
 
-.post-form textarea {
+.post-form textarea, .edit-form textarea {
   width: 100%;
   max-width: 100%;
 }
 
-.post-form p {
+.post-form p, .edit-form p {
   font-size: 20px;
   font-weight: bold;
   text-align: left;
@@ -162,7 +188,7 @@ p.post-description {
   background-color: white;
   padding: 20px;
   width: 80%;
-  height: 70%;
+  height: 80%;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -178,17 +204,18 @@ p.post-description {
   color: white;
   width: 30%;
   opacity: 0.8;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 15px;
   font-weight: bold;
   padding: 16px 20px;
+  margin-bottom: 50px;
 }
 
 .publish-btn:hover {
   opacity: 1;
 }
 
-/* profile */
+/* profile and edit posts modal */
 #profile-screen .modal-content {
   height: 70%;
 }
@@ -206,7 +233,7 @@ p.post-description {
   margin-bottom: 20px;
 }
 
-#profile-screen input {
+#profile-screen input{
   width: 100%;
   margin-bottom: 20px;
 }
@@ -226,4 +253,10 @@ p.post-description {
 
 #user-screen .modal-content {
   height: 70%;
+}
+
+#edit-error-2 {
+  font-weight: normal;
+  color: red;
+  font-size: 16px;
 }
