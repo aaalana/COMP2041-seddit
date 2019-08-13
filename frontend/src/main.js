@@ -27,6 +27,7 @@ import {makeFollowingWindow,
 import comment from './comment.js';
 import {updateProfile} from './updateProfile.js';
 import {makeUserPage, mainUserPage} from './userPage.js';
+import {startSearch} from './search.js';
 
 // your app must take an apiUrl as an argument --
 // this will allow us to verify your apps behaviour with 
@@ -53,6 +54,9 @@ function initApp(apiUrl) {
     logout();
     checkUserLoggedIn(apiUrl);
  
+    // allow users to search posts
+    startSearch(apiUrl);
+    
     // allow the description to be expanded/collapsed
     togglePost();
  

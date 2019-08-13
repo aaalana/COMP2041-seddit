@@ -26,6 +26,12 @@ function header() {
     headerSearch.type = 'search';
     headerSearch.textContent = 'Seddit';
     
+    // enter search
+    const searchBtn = document.createElement('button');
+    searchBtn.className = 'button button-secondary';
+    searchBtn.textContent = 'search';
+    searchBtn.id = 'search-btn';
+   
     // login button
     const headerLiLogin = headerLiSearch.cloneNode(true);
     const headerButtonL = document.createElement('button');
@@ -60,6 +66,7 @@ function header() {
     header.appendChild(headerH1);
     
     headerLiSearch.appendChild(headerSearch);
+    headerLiSearch.appendChild(searchBtn);
     headerLiLogin.appendChild(headerButtonL);
     headerLiSignUp.appendChild(headerButtonS);
     headerLiUser.appendChild(loggedUser);

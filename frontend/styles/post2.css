@@ -6,7 +6,12 @@
 }
 
 #post-btn {
- justify-content: flex-end;
+  justify-content: flex-end;
+}
+
+#search-btn {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
 }
 
 .post .content {
