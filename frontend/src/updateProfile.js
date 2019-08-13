@@ -1,14 +1,17 @@
+/* This file is updating the user's profile */
+ 
 import {signValidate} from './signUp.js';
 
 // changes the profile page to an editing profile page
 function editProfileMode() {
-    // show editing fields 
+    
+    // define variables for easier referencing of elements
     let profile = document.getElementById('profile-screen');
     let Uname = profile.getElementsByClassName('userDetails')[0];
     let email = profile.getElementsByClassName('userDetails')[1];
     let password = profile.getElementsByClassName('userDetails')[2];
     
-  
+    // load the user's information into the input fields for editing
     let editName = Uname.nextSibling;
     editName.value = Uname.textContent;
     let editEmail = email.nextSibling;
@@ -18,6 +21,7 @@ function editProfileMode() {
     let update = editPassword.nextSibling.nextSibling;
     let cancel = update.nextSibling;
     
+    // show the editing fields on the editing form
     update.style.display= 'inline-block';
     cancel.style.display= 'inline-block';
     editName.style.display= 'block';
@@ -27,7 +31,6 @@ function editProfileMode() {
     // hide profile information that is not edited
     let btns = document.getElementById('profile-btn-div');
     btns.style.visibility = 'hidden';
-    
     Uname.style.display = 'none';
     email.style.display = 'none';
     password.style.display = 'none';
@@ -56,8 +59,14 @@ function editProfileMode() {
 
 // switch from editing profile mode to showing the user's profile
 function profileMode() {
-    let profile = document.getElementById('profile-screen').firstChild.childNodes;
     
+    // extract all the profile elements as a node list
+    let profile = document.getElementById('profile-screen')
+                          .firstChild.childNodes;
+    
+    // loop through this list 
+    // hide elements used for editing the profile
+    // and show elements of the user's profile
     for (let element of profile) {
         if (element.id === 'empty-message-profile') {
             element.style.display = 'none';
@@ -71,14 +80,20 @@ function profileMode() {
         } 
     }
    
+    // clear any error messages that were set from editing the profile
     let message = document.getElementById('edit-error'); 
     message.textContent = '';
 }
 
-// updates the user's profile
+// controls the buttons used for editing the user's profile:
+// -updates the user's profile
+// -changes from editing mode to show profile mode
 function updateProfile(apiUrl) {
+    
     let update = document.getElementById('update-btn');
     update.onclick = () => {
+    
+        // extract the values of the user's profile
         let Uname = document.getElementById('edit-name').value;
         let email = document.getElementById('edit-email').value;
         let password = document.getElementById('edit-password').value;
@@ -94,10 +109,12 @@ function updateProfile(apiUrl) {
         // editing fields must contain valid characters
         } else if (signValidate('none', password, email, Uname, message) === false) {
             return
+        // no errors found so no error message will be displayed
         } else {
             message.textContent = '';
         }
-      
+        
+        // setting the parameters for updating via the api
         let payload = {
           "email": email,
           "name":  Uname,
@@ -113,6 +130,7 @@ function updateProfile(apiUrl) {
             body: JSON.stringify(payload)
         }
       
+        // update profile changes
         fetch(`${apiUrl}/user`, options)
             .then(response => response.json())
             .then(json => {

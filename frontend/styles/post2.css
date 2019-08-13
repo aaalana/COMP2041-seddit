@@ -103,8 +103,8 @@ p.post-description {
   font-size: 18px;
 }
 
-#comment-screen .modal-content, #public-screen .modal-content{
-  height: 70%;
+#comments-screen .modal-content, #public-screen .modal-content {
+  height: 80%;
 }
 
 #close-button, #close-pub-button {

@@ -1,3 +1,7 @@
+/* This file is responsible for allowing a logged in user to comment 
+ * on a post
+ */
+
 import {makeCommentTemplate, getPost, loadVotesComments} from './showVotesComments.js';
 import {getUser} from './upvote.js';
 import {getPostInfo} from './showProfile.js';
@@ -5,10 +9,14 @@ import {getPostInfo} from './showProfile.js';
 // posts the user's comment into the comment's section
 // only lets logged in users to comment
 function comment(apiUrl) {
-    // submit comment
+    
+    // submit comment when the comment button is clicked on
     let commentBtn = document.getElementById('comment-btn');
     commentBtn.onclick = () => {
+        // get the user's comment 
         let userComment = document.getElementById('comment-input').value;
+        
+        // define parameters for fetching
         let userToken = localStorage.getItem('token');
         let postId = localStorage.getItem('postId');
        
@@ -16,6 +24,8 @@ function comment(apiUrl) {
             'comment': userComment
         } 
         
+        // only publish the comment when it is non-empty
+        // otherwise through an error message
         if (userComment) {
             let options = {
                 method: 'PUT',

@@ -1,7 +1,12 @@
+/* THIS FILE IS RESPONSIBLE FOR ALLOWING THE USER TO SEARCH POSTS BY TITLE
+ */
+ 
 import {sortPosts, loadPost,loadMorePosts} from './feed.js';
 
 // gets all the posts from the user's feed
 function getAllPosts(apiUrl) {
+    
+    // defining parameters use of the feed api
     let userToken = localStorage.getItem('token');
    
     let optionsUserFeed = {
@@ -18,8 +23,7 @@ function getAllPosts(apiUrl) {
         .then(json => {
             // get matching posts
             let matched = searchPosts(json.posts);
-            console.log(matched);
-         
+       
             // sorting posts from most recent to least
             let sortedPosts = sortPosts(matched);
             
@@ -30,53 +34,69 @@ function getAllPosts(apiUrl) {
             let userId = localStorage.getItem('loggedUserInfo').id;
             for (let post of sortedPosts) 
                 loadPost(post, userId, apiUrl, 'feed'); 
-            // disable infini
         })
 }
 
-// clears the user's feed 
+// clears the posts on the user's feed 
 function clearFeed() {
-    // clear the feed
-    console.log("here");
+
+    // defining variables for easier referencing of elements
     let feed = document.getElementById('feed');
     let posts = feed.getElementsByTagName('li');
     let header = feed.firstChild.cloneNode(true);
-  
+    
+    // remove all posts on the feed
     let i = 0;
     while (posts.length) 
         posts[i].remove();
 }
 
+// controls all the buttons responsible for searching: 
+// -submits the search
+// -listens to the search input field to determine when the return the feed
+//  back to normal
 function startSearch(apiUrl) {
-    // start searching through posts when the user searches
+    
+    // variables defined for easier referencing of elements
     let searchBtn = document.getElementById('search-btn');
+    let searchInput = document.getElementById('search');
+    
+    // start searching through posts when the user searches
     searchBtn.onclick = () => {
         localStorage.setItem('search', 'true');
         getAllPosts(apiUrl);
     }
     
-    // when the search is cleared, rebuilt the feed back to normal
-    let searchInput = document.getElementById('search');
+    // check when the user stops and starts search 
     searchInput.addEventListener('input', function() {
+        
+        // when the user is no longer searching, reload the user's feed 
+        // i.e when the search field value is empty
         if (searchInput.value == '') {
             localStorage.setItem('search', 'false');
             reconstructFeed(apiUrl);
         } 
+        
     });
 }
 
-// resets search results back to the normal state of the user's feed
+// removes search results and returns the feed back to its normal state 
 function reconstructFeed(apiUrl) {
+    
     // clear search results
     let feed = document.getElementById('feed');
     clearFeed();                 
- 
+    
+    // load the user's feed
     loadMorePosts(apiUrl, 0); 
 }
 
 // returns an array of posts that match the search by title
 function searchPosts(posts) {
+    
+    // extract the user's search keywords
     let searchInput = document.getElementById('search').value;
+    
     // search the posts by title
     return posts.filter((post) => {
         return post.title.toLowerCase().match(searchInput.toLowerCase());

@@ -1,7 +1,10 @@
+/* This file is responsible for signing up a user */
+
 import {makeLoginForm} from './login.js';
 
+// makes the sign up form for the user to sign up
 function makeSignUpForm() {   
-    // REGISTRATION
+    
     // duplicate login form and modify to make the signup form
     const signDiv = document.getElementById('login').cloneNode(true);
     signDiv.id = 'sign-up';
@@ -53,12 +56,14 @@ function makeSignUpForm() {
     signSubmit.id = 'sign-up-submit';
     signClose.className = 'sign-up-btn';
     signClose.id = 'sign-close';
+    
     document.getElementById('root').appendChild(signDiv);
 }
 
+// controls the buttons related to sign up
+// -opens/closes the sign up form
 function signUpFunctionality(apiUrl) {
-    // buttons functionality for sign up
-    
+  
     // open the sign up form and close the login form (if open) when
     // the sign up button is clicked
     let signBtn = document.getElementById('sign-up-btn');
@@ -69,12 +74,13 @@ function signUpFunctionality(apiUrl) {
      
     // submit user details into user data base when the submit button 
     // is clicked
-    // note: sign up is failing for subset 0
     let signSubmit = document.getElementsByClassName('sign-up-btn')[0];
     let inputError = document.getElementById('sign-input-error');
     signSubmit.onclick = () => {
+        // reset any error messages from previous input validation
         inputError.textContent = '';
         
+        // extract the user's input 
         let username = document.getElementById('sign-username').value;
         let password = document.getElementById('sign-password').value;
         let email = document.getElementById('sign-email').value;
@@ -95,13 +101,18 @@ function signUpFunctionality(apiUrl) {
             },
             body: JSON.stringify(payload)
         }
+        
+        // check the user's input for sign validation before signing 
+        // the user up
         if (signValidate(username, password, email, name, inputError) == true) {
             fetch(`${apiUrl}/auth/signup`, options)
                 .then(response => response.json())
                 .then(json => {
+                    // through any other errors with the user's input
                     if (json.message) {
                         inputError.textContent= `Error: ${json.message}`;
-                    // create new user
+                    // create new user and store their information
+                    // in local storage
                     } else {
                         localStorage.setItem('token', `${json.token}`);
                         localStorage.setItem('user', `${username}`);
@@ -114,6 +125,7 @@ function signUpFunctionality(apiUrl) {
     }
     
     // close the sign up form when the close button is clicked
+    // clears the form when the form is closed
     let signClose = document.getElementsByClassName('sign-up-btn')[1];
     let signForm = document.getElementById('signup-form');
     signClose.onclick = () => {
@@ -145,6 +157,7 @@ function signValidate(username, password, email, name, inputError) {
         inputError.textContent = 'Error: Invalid password';
         return false;
     // emails must be in a valid form e.g. email@something.com
+    // i.e. similar format - word@word.word
     } else if (!email.match(legalEmail)) {
         inputError.textContent = 'Error: Invalid email';
         return false;

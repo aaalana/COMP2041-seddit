@@ -1,8 +1,13 @@
+/* This file is responsible for loading a list/feed of posts. 
+ * This can be on a user's page or the user's feed.
+ */
+
 import {getUser, checkUserInUpvotes} from './upvote.js'
 
-function createFeedTemplate() {    
-    // MAKING THE FEED 
-    
+// creates a blank template for the list of posts to append to later on
+// also creates the feed header (the block of elements just above the 
+// feed
+function createFeedTemplate() {   
     // CREATING THE ELEMENTS OF POST - making a post template
     // image element not added (added in makeFeed.js)
     const main = document.createElement('main');
@@ -44,29 +49,39 @@ function createFeedTemplate() {
     document.getElementById('root').appendChild(main);
 }
 
+// makes a modal for showing the public feed 
+// this can only be accessed by a logged in user
 function makePublic() {
-    // make modal for public feed when user is logged in  
+    
+    // create modal elements
+    
+    // black screen
     const modalPub = document.createElement('div');
     modalPub.className = 'black-bg';
     modalPub.id = 'public-screen';
     
+    // modal
     const modalWindow = document.createElement('div');
     modalWindow.className = 'modal-content';
-   
+    
+    // close button
     const close = document.createElement('span');
     close.className = 'material-icons';
     close.id = 'close-pub-button';
     close.textContent = 'close';
     
+    // title
     const title = document.createElement('h1');
     title.textContent = 'Public Feed'
     title.className = 'title';
      
+    // ul element to group posts together 
     const feedUl = document.createElement('ul');
     feedUl.id = 'pub-feed';
     const feedAttribute = document.createAttribute('data-id-feed');
     feedUl.setAttributeNode(feedAttribute); 
     
+    // append elements
     modalWindow.appendChild(close);
     modalWindow.appendChild(title);
     modalWindow.appendChild(feedUl);
@@ -75,16 +90,24 @@ function makePublic() {
     document.getElementById('root').appendChild(modalPub); 
 }
 
-// opens and closes the public modal 
+// opens and closes the public feed modal
+// this can only be accessed by a logged in user
 function showPublic(apiUrl) {
+    
+    // defining variables for easier access
     let pubModal = document.getElementById('public-screen');
     let publicBtn = document.getElementById('public-btn');
     let feedUl = document.getElementById('pub-feed');
+    
+    // open the public modal
     publicBtn.onclick = () => {
         pubModal.style.visibility = 'visible';
+        
+        // load the public posts into the public modal
         fetchPublicFeed(apiUrl, 'pub-feed');
     }
    
+    // close the public modal
     let closeBtn = document.getElementById('close-pub-button');
     closeBtn.onclick = () => {
         pubModal.style.visibility = 'hidden';
@@ -94,56 +117,74 @@ function showPublic(apiUrl) {
     }
 }
 
+// returns a post template of elements that will have their textContent 
+// filled when the feed is loaded
 function makePostTemplate() {
+    
+    // CREATE THE ELEMENTS
+    
+    // element to group the post data
     const feedLi = document.createElement('li');
     feedLi.className = 'post';
     const postAttribute = document.createAttribute('data-id-post');
     feedLi.setAttributeNode(postAttribute); 
     
+    // used for viewing the upvotes of a post
     const vote = document.createElement('div');
     vote.className = 'vote';
     const upvoteAttribute = document.createAttribute('data-id-upvotes');
     vote.setAttributeNode(upvoteAttribute); 
     
+    // content grouping of the post
     const content = document.createElement('div');
     content.className = 'content';
     
+    // title
     const feedTitle = document.createElement('h4');
     const titleAttribute = document.createAttribute('data-id-title');
     feedTitle.setAttributeNode(titleAttribute); 
     feedTitle.className = 'post-title alt-text';
-               
+    
+    // description           
     const feedPara = document.createElement('span');
     feedPara.className = 'post-author'; 
     const authorAttribute = document.createAttribute('data-id-author');
     feedPara.setAttributeNode(authorAttribute);        
     
+    // date
     const feedDate = document.createElement('span');
     feedDate.className = 'post-date'
     
+    // thumbs up
     const feedThumbsUp = document.createElement('span');
     feedThumbsUp.className = 'material-icons';
     feedThumbsUp.id = 'thumbs-up';
     feedThumbsUp.textContent = 'thumb_up';
       
+    // delete post
     const feedDelete = document.createElement('span');
     feedDelete.className = 'material-icons';
     feedDelete.id = 'delete';
     feedDelete.textContent = 'delete';  
     
+    // edit post
     const feedEdit = document.createElement('span');
     feedEdit.className = 'material-icons';
     feedEdit.id = 'edit';
     feedEdit.textContent = 'edit'; 
     
+    // description
     const feedDescript = document.createElement('p');
     feedDescript.className = 'post-description'
     
+    // number of comments
     const feedComments = document.createElement('span');
     feedComments.className = 'feed-comments';
     
+    // subseddit
     const feedSubseddit = document.createElement('span');
     feedSubseddit.className = 'feed-subseddit';
+    feedSubseddit.textContent = 'all';
     
     // APPENDING ELEMENTS TO HEADER
     feedLi.appendChild(vote);
@@ -157,19 +198,25 @@ function makePostTemplate() {
     content.appendChild(feedComments);
     content.appendChild(feedSubseddit);
     feedLi.appendChild(content);
+    
+    // RETURN THE TEMPLATE
     return feedLi;
 }
 
 // allow a description of a post to expand/collapsed when clicked on
-function togglePost(){
+function togglePost() {
+
+    // check if the description of a post is being clicked on
     window.addEventListener('click', function(e) {
         let descriptions = document.getElementsByClassName('post-description');
         for (let description of descriptions) {
             if (description == e.target) {
+                // show the full description
                 if (description.style.textOverflow == 'ellipsis') {
                     description.style.textOverflow = 'clip';
                     description.style.overflow = 'visible';
                     description.style.whiteSpace = 'normal';
+                // only show part of the description
                 } else {
                     description.style.textOverflow = 'ellipsis';
                     description.style.overflow = 'hidden';
@@ -180,7 +227,7 @@ function togglePost(){
     });
 }
 
-// generate the public feed for a user who is not logged in 
+// generate the public feed for a user who is not logged in via the api
 function fetchPublicFeed(apiUrl, ul) {
     fetch(`${apiUrl}/post/public`)
         .then(response => response.json())
@@ -189,6 +236,7 @@ function fetchPublicFeed(apiUrl, ul) {
 
 // generates the user's feed (for users logged in or not)
 function makeFeed(json, apiUrl, ul) {
+    
     // gets the user's id via the logged in <user> element
     let userId = '';
     if (localStorage.getItem('login') == 'true') 
@@ -218,9 +266,10 @@ function sortPosts(posts) {
     return sortedPosts;
 }
 
-// clones the template post element and modifies the text of 
-// the post
+// clones the template post element
+// modifies the elements to fill in the information of the post
 function loadPost(post, userId, apiUrl, elementId) {
+   
     let feedPost = makePostTemplate();
     feedPost.id = post.id;
     
@@ -247,13 +296,16 @@ function loadPost(post, userId, apiUrl, elementId) {
     let edit = feedPost.childNodes[1].childNodes[5];
     let feedDelete = feedPost.childNodes[1].childNodes[4];
     let thumb = feedPost.childNodes[1].childNodes[3];
+    
     if (localStorage.getItem('login') == 'true') {
+        
         // only allow edit and delete post options when the user is 
         // logged in and is the author
         if (username == loggedUser) {
             edit.style.visibility = 'visible';
             feedDelete.style.visibility = 'visible';      
         }
+        
         // change the thumbs to blue if the user has already upvoted
         // on the post
         thumb.style.visibility = 'visible';
@@ -306,11 +358,14 @@ function timeConverter(UNIX_timestamp){
 // controls when more posts are loaded into the user's feed
 // allows for infinite scroll
 function infiniteScroll(apiUrl) {
+    
     let scroll = document.createElement('div'); 
     let root = document.getElementById('root');
     let percentage;
     let start = 0;
+    
     window.addEventListener('scroll', function() {
+        
         // calculates an approximate height of how much the user has 
         // scrolled through the page
         // does not infinite scroll when the user is searching
@@ -358,15 +413,6 @@ function loadMorePosts(apiUrl, start) {
         });
 }
 
-export {makePostTemplate, 
-        infiniteScroll, 
-        makePublic,
-        loadPost,
-        sortPosts, 
-        createFeedTemplate,
-        showPublic,
-        fetchPublicFeed, 
-        timeConverter, 
-        makeFeed, 
-        loadMorePosts,
-        togglePost};
+export {makePostTemplate, infiniteScroll, makePublic, loadPost, sortPosts, 
+        createFeedTemplate, showPublic, fetchPublicFeed, timeConverter, 
+        makeFeed, loadMorePosts, togglePost};

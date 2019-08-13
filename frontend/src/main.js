@@ -3,26 +3,23 @@
  * 
  * Updated 2019.
  */
-
+ 
+/* THIS FILE IS RESPONSIBLE FOR RUNNING THE FUNCTIONS FROM OTHER FILES
+ * SO THAT ELEMENTS AND OTHER FUNCTIONALITY IS ADDED TO THE WEBSITE
+ */
+ 
 // import your own scripts here.
 import {header} from './header.js';
-import {makeLoginForm, 
-        loginFunctionality, 
-        logout, 
+import {makeLoginForm, loginFunctionality, logout, 
         checkUserLoggedIn} from './login.js';
 import {makeSignUpForm, signUpFunctionality} from './signUp.js';
-import {infiniteScroll,
-        createFeedTemplate,
-        makePublic,
-        showPublic, 
+import {infiniteScroll, createFeedTemplate, makePublic, showPublic, 
         togglePost} from './feed.js';
-import {makeUpvotesWindow,
-        makeCommentsWindow, 
+import {makeUpvotesWindow, makeCommentsWindow, 
         loadVotesComments} from './showVotesComments.js';
 import {thumbsButtonFunctionality} from './upvote.js';
 import {postForm, makePost, postBtnOptions, editPostForm} from './post.js';
-import {makeFollowingWindow,
-        makeProfileWindow, 
+import {makeFollowingWindow, makeProfileWindow,
         showProfile} from './showProfile.js';
 import comment from './comment.js';
 import {updateProfile} from './updateProfile.js';
@@ -33,6 +30,7 @@ import {startSearch} from './search.js';
 // this will allow us to verify your apps behaviour with 
 // different datasets.
 function initApp(apiUrl) {   
+    
     // making the website
     // make header
     header();
@@ -80,8 +78,7 @@ function initApp(apiUrl) {
     showProfile(apiUrl);
     updateProfile(apiUrl);
     
-    // infinite scroll of user feed
-    // do not infinite scroll when the user is searching
+    // applies infinite scroll of user feed
     if (localStorage.getItem('login') === 'true') {
         infiniteScroll(apiUrl);
     }

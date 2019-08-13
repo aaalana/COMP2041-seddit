@@ -45,6 +45,7 @@
                              
 12/09/19    09:00  23:59    -fixed bug on feed (comments did not live update)
                             -Level 3 follow done
-13/09/19    15:00  20:00    -see public feed option for logged in user added
+13/09/19    15:00  23:59    -see public feed option for logged in user added
                             -Level 3 update/delete post done 
-                            -Level 3 search done                 
+                            -Level 3 search done 
+                            -comments added to explain code              
