@@ -72,6 +72,7 @@ function reconstructFeed(apiUrl) {
     postBtn.className = 'button button-secondary';
     postBtn.textContent = 'Post';
     postBtn.id = 'post-btn';
+    postBtn.style.visibility = 'visible';
     
     feedHeader.appendChild(popularPosts);
     feedHeader.appendChild(publicBtn);
