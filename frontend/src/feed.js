@@ -313,22 +313,25 @@ function infiniteScroll(apiUrl) {
     window.addEventListener('scroll', function() {
         // calculates an approximate height of how much the user has 
         // scrolled through the page
-        let scrolledHeight = pageYOffset;
-        let lastPost = document.getElementById('feed').lastChild;
-        
-        // calculates the distance from the first post to the last post
-        // including the height of the posts themselves
-        let firstToLastPost = lastPost.offsetTop + lastPost.clientHeight;
-      
-        // calculates the height from the top to the bottom of the page
-        let pageScrollHeight = pageYOffset + window.innerHeight;
-       
-        // load more posts when the scroll bar reaches around the bottom
-        // of the page         
-        if (pageScrollHeight > firstToLastPost + 20) {
-            // only load 10 posts at a time
-            start = start + 10;
-            loadMorePosts(apiUrl, start);
+        // does not infinite scroll when the user is searching
+        if (localStorage.getItem('search') == 'false') {
+            let scrolledHeight = pageYOffset;
+            let lastPost = document.getElementById('feed').lastChild;
+            
+            // calculates the distance from the first post to the last post
+            // including the height of the posts themselves
+            let firstToLastPost = lastPost.offsetTop + lastPost.clientHeight;
+          
+            // calculates the height from the top to the bottom of the page
+            let pageScrollHeight = pageYOffset + window.innerHeight;
+           
+            // load more posts when the scroll bar reaches around the bottom
+            // of the page         
+            if (pageScrollHeight > firstToLastPost + 20) {
+                // only load 10 posts at a time
+                start = start + 10;
+                loadMorePosts(apiUrl, start);
+            }
         }
     });
 }

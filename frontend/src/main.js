@@ -80,9 +80,11 @@ function initApp(apiUrl) {
     showProfile(apiUrl);
     updateProfile(apiUrl);
     
-    // infinite scroll of feed
-    if (localStorage.getItem('login') === 'true') 
+    // infinite scroll of user feed
+    // do not infinite scroll when the user is searching
+    if (localStorage.getItem('login') === 'true') {
         infiniteScroll(apiUrl);
+    }
     
     // scroll to the top of the page when the page refreshes
     window.onbeforeunload = function() {

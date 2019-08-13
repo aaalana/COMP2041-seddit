@@ -1,5 +1,6 @@
 import {sortPosts, loadPost,loadMorePosts} from './feed.js';
 
+// gets all the posts from the user's feed
 function getAllPosts(apiUrl) {
     let userToken = localStorage.getItem('token');
    
@@ -11,7 +12,8 @@ function getAllPosts(apiUrl) {
         }
     }
     
-    fetch(`${apiUrl}/user/feed?n=10000`, optionsUserFeed)
+    // fetch a very large number of posts
+    fetch(`${apiUrl}/user/feed?n=1000000`, optionsUserFeed)
         .then(response => response.json())
         .then(json => {
             // get matching posts
@@ -22,8 +24,7 @@ function getAllPosts(apiUrl) {
             let sortedPosts = sortPosts(matched);
             
             // clear the feed
-            let feed = document.getElementById('feed');
-            feed.innerText = '';
+            clearFeed();
             
             // load matched posts onto the feed
             let userId = localStorage.getItem('loggedUserInfo').id;
@@ -33,19 +34,34 @@ function getAllPosts(apiUrl) {
         })
 }
 
+// clears the user's feed 
+function clearFeed() {
+    // clear the feed
+    console.log("here");
+    let feed = document.getElementById('feed');
+    let posts = feed.getElementsByTagName('li');
+    let header = feed.firstChild.cloneNode(true);
+  
+    let i = 0;
+    while (posts.length) 
+        posts[i].remove();
+}
+
 function startSearch(apiUrl) {
     // start searching through posts when the user searches
     let searchBtn = document.getElementById('search-btn');
     searchBtn.onclick = () => {
-        console.log('triggered');
+        localStorage.setItem('search', 'true');
         getAllPosts(apiUrl);
     }
     
     // when the search is cleared, rebuilt the feed back to normal
     let searchInput = document.getElementById('search');
     searchInput.addEventListener('input', function() {
-        if (searchInput.value == '') 
-            reconstructFeed(apiUrl); 
+        if (searchInput.value == '') {
+            localStorage.setItem('search', 'false');
+            reconstructFeed(apiUrl);
+        } 
     });
 }
 
@@ -53,31 +69,8 @@ function startSearch(apiUrl) {
 function reconstructFeed(apiUrl) {
     // clear search results
     let feed = document.getElementById('feed');
-    feed.innerText = '';
-                
-    // return the feed back to normal
-    const feedHeader = document.createElement('div');
-    feedHeader.className = 'feed-header';
-   
-    const popularPosts = document.createElement('h3');
-    popularPosts.className = 'feed-title alt-text';
-    popularPosts.textContent = 'Popular posts';
-    
-    const publicBtn = document.createElement('button');
-    publicBtn.className = 'button button-primary';
-    publicBtn.textContent = 'See Public Feed';
-    publicBtn.id = 'public-btn';
-    
-    const postBtn = document.createElement('button');
-    postBtn.className = 'button button-secondary';
-    postBtn.textContent = 'Post';
-    postBtn.id = 'post-btn';
-    postBtn.style.visibility = 'visible';
-    
-    feedHeader.appendChild(popularPosts);
-    feedHeader.appendChild(publicBtn);
-    feedHeader.appendChild(postBtn);
-    feed.appendChild(feedHeader);
+    clearFeed();                 
+ 
     loadMorePosts(apiUrl, 0); 
 }
 
